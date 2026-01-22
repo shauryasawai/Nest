@@ -1,0 +1,179 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Patient {{ patient.patient_id }} - NEST 2.0{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Patient {{ patient.patient_id }}</h1>
+            <p class="text-muted">
+                Site: <a href="{% url 'base:site_detail' patient.site.id %}">{{ patient.site.site_number }}</a>
+                | Enrollment: {{ patient.enrollment_date|default:"Not enrolled" }}
+            </p>
+        </div>
+        <div>
+            <span class="badge bg-{{ patient.status }} p-3">
+                {{ patient.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Issues Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6>Total Issues</h6>
+                    <h2>{{ patient.issues_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6>Open Queries</h6>
+                    <h2>{{ queries|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6>Visits</h6>
+                    <h2>{{ visits|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Missing Labs</h6>
+                    <h2>{{ lab_data|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visits -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt text-primary"></i> Visits</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Visit</th>
+                            <th>Visit Name</th>
+                            <th>Scheduled Date</th>
+                            <th>Actual Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in visits %}
+                        <tr>
+                            <td>{{ visit.visit_number }}</td>
+                            <td>{{ visit.visit_name }}</td>
+                            <td>{{ visit.scheduled_date|default:"N/A" }}</td>
+                            <td>{{ visit.actual_date|default:"N/A" }}</td>
+                            <td>
+                                {% if visit.is_completed %}
+                                <span class="badge bg-success">Completed</span>
+                                {% elif visit.is_missing %}
+                                <span class="badge bg-danger">Missing</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Queries -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-question-circle text-warning"></i> Open Queries</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Query ID</th>
+                            <th>Type</th>
+                            <th>Severity</th>
+                            <th>Text</th>
+                            <th>Days Open</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for query in queries %}
+                        <tr>
+                            <td>{{ query.query_id }}</td>
+                            <td><span class="badge bg-secondary">{{ query.get_query_type_display }}</span></td>
+                            <td><span class="badge bg-{{ query.severity }}">{{ query.severity|upper }}</span></td>
+                            <td>{{ query.query_text|truncatewords:10 }}</td>
+                            <td>{{ query.days_open }}</td>
+                            <td>
+                                {% if query.is_resolved %}
+                                <span class="badge bg-success">Resolved</span>
+                                {% else %}
+                                <span class="badge bg-warning">Open</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Data -->
+    {% if lab_data %}
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-flask text-info"></i> Missing Lab Data</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Lab Name</th>
+                            <th>Test Name</th>
+                            <th>Collection Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lab in lab_data %}
+                        <tr>
+                            <td>{{ lab.lab_name }}</td>
+                            <td>{{ lab.test_name }}</td>
+                            <td>{{ lab.collection_date|default:"N/A" }}</td>
+                            <td>
+                                {% if lab.is_missing %}
+                                <span class="badge bg-danger">Missing</span>
+                                {% else %}
+                                <span class="badge bg-success">Complete</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Studies - NEST 2.0{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="mb-4">All Studies</h1>
+    
+    <div class="row">
+        {% for study in studies %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4>{{ study.study_id }}</h4>
+                    <h6 class="text-muted mb-3">{{ study.study_name }}</h6>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Protocol:</strong> {{ study.protocol_number }}</p>
+                            <p class="mb-1"><strong>Phase:</strong> {{ study.get_phase_display }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Sites:</strong> {{ study.site_count }}</p>
+                            <p class="mb-1"><strong>Patients:</strong> {{ study.patient_count }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'base:dashboard' %}?study={{ study.id }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-chart-line"></i> View Dashboard
+                        </a>
+                        <a href="{% url 'base:site_list' %}?study={{ study.id }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-hospital"></i> View Sites
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

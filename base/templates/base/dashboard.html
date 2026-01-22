@@ -1,0 +1,291 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - NEST 2.0{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Clinical Data Intelligence Dashboard</h1>
+            <p class="text-muted">Real-time overview of clinical trial data quality</p>
+        </div>
+        <div>
+            <select class="form-select" id="studyFilter" onchange="filterByStudy(this.value)">
+                <option value="">All Studies</option>
+                {% for study in studies %}
+                <option value="{{ study.id }}" {% if selected_study == study.id|stringformat:'s' %}selected{% endif %}>
+                    {{ study.study_id }} - {{ study.study_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card metric-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 opacity-75">Total Sites</h6>
+                            <h2 class="mb-0">{{ total_sites|default:0 }}</h2>
+                        </div>
+                        <i class="fas fa-hospital fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card metric-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 opacity-75">Total Patients</h6>
+                            <h2 class="mb-0">{{ total_patients|default:0 }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card metric-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 opacity-75">Clean Patients</h6>
+                            <h2 class="mb-0">
+                                {{ clean_patients|default:0 }}
+                                <small>({{ clean_percentage|default:0 }}%)</small>
+                            </h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card metric-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 opacity-75">Sites Need Attention</h6>
+                            <h2 class="mb-0">
+                                {{ critical_sites|default:0|add:poor_sites|default:0 }}
+                            </h2>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie text-primary"></i> DQI Score Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="dqiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-success"></i> Top Performing Sites
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Site</th>
+                                <th>Name</th>
+                                <th>DQI Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for site in top_sites %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'base:site_detail' site.id %}">
+                                        {{ site.site_number }}
+                                    </a>
+                                </td>
+                                <td>{{ site.site_name|truncatewords:3 }}</td>
+                                <td>
+                                    <span class="badge dqi-{{ site.get_dqi_status }}">
+                                        {{ site.dqi_score }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">
+                                        {{ site.get_dqi_status|upper }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-muted text-center">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts & Attention -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-circle text-danger"></i> Sites Needing Attention
+                    </h5>
+                    <a href="{% url 'base:site_list' %}?dqi=critical"
+                       class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% for site in attention_sites %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <strong>
+                                <a href="{% url 'base:site_detail' site.id %}">
+                                    Site {{ site.site_number }}
+                                </a>
+                            </strong><br>
+                            <small class="text-muted">{{ site.site_name }}</small>
+                        </div>
+                        <div>
+                            <span class="badge dqi-{{ site.get_dqi_status }}">
+                                DQI: {{ site.dqi_score }}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No sites need immediate attention.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell text-warning"></i> Recent Alerts
+                    </h5>
+                    <a href="{% url 'base:alerts' %}"
+                       class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% for alert in recent_alerts %}
+                    <div class="card mb-2 alert-{{ alert.severity }}">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-{{ alert.severity }}">
+                                    {{ alert.severity|upper }}
+                                </span>
+                                <small class="text-muted">
+                                    {{ alert.created_at|timesince }} ago
+                                </small>
+                            </div>
+                            <p class="mb-1 mt-2">
+                                <small>{{ alert.message }}</small>
+                            </p>
+                            <small class="text-muted">
+                                Site: {{ alert.site.site_number }}
+                            </small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent alerts.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterByStudy(studyId) {
+    window.location.href = studyId
+        ? '?study=' + studyId
+        : '{% url "base:dashboard" %}';
+}
+
+/* ---------- DQI Chart ---------- */
+
+const ctx = document.getElementById('dqiChart');
+
+if (ctx) {
+    new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: [
+                'Excellent (90–100)',
+                'Good (75–89)',
+                'Fair (60–74)',
+                'Poor (45–59)',
+                'Critical (0–44)'
+            ],
+            datasets: [{
+                data: [
+                    Number('{{ excellent_sites|default:0 }}'),
+                    Number('{{ good_sites|default:0 }}'),
+                    Number('{{ fair_sites|default:0 }}'),
+                    Number('{{ poor_sites|default:0 }}'),
+                    Number('{{ critical_sites|default:0 }}')
+                ],
+                backgroundColor: [
+                    '#10b981',
+                    '#84cc16',
+                    '#f59e0b',
+                    '#f97316',
+                    '#ef4444'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        boxWidth: 12
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+# Virtual environment
+my_env/
+
+# Local scripts
+populate_dummy_data.py
+
+# Sample data
+sample_excel_files/
+.env
+.env*
