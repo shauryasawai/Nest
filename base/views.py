@@ -266,16 +266,26 @@ def alerts_view(request):
     """View all alerts"""
     alerts = Alert.objects.all().select_related('site', 'patient')
     
-    # Filter by severity
+    # Get all filter parameters
     severity = request.GET.get('severity')
+    status = request.GET.get('status')
+    alert_type = request.GET.get('alert_type')
+    
+    # Apply filters
     if severity:
         alerts = alerts.filter(severity=severity)
     
-    # Filter by status
-    if request.GET.get('status') == 'resolved':
+    if status == 'resolved':
         alerts = alerts.filter(is_resolved=True)
+    elif status == 'all':
+        # Show all, no filter
+        pass
     else:
+        # Default: active only
         alerts = alerts.filter(is_resolved=False)
+    
+    if alert_type:
+        alerts = alerts.filter(alert_type=alert_type)
     
     alerts = alerts.order_by('-created_at')
     

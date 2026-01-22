@@ -3,7 +3,6 @@ my_env/
 media/
 
 # Local scripts
-populate_dummy_data.py
 
 # Sample data
 sample_excel_files/
