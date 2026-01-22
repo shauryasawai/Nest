@@ -1,5 +1,6 @@
 # Virtual environment
 my_env/
+media/
 
 # Local scripts
 populate_dummy_data.py
