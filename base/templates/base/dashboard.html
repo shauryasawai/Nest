@@ -2,222 +2,652 @@
 
 {% block title %}Dashboard - NEST 2.0{% endblock %}
 
+{% block extra_css %}
+<style>
+    .dashboard-shell {
+        /* make background subtle and let content span full width */
+        padding: 0;
+        min-height: calc(100vh - 80px);
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.55), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(59,130,246,0.12), transparent 55%),
+                    #0f172a;
+    }
+
+    .dashboard-card {
+        /* full‑width layout instead of centered floating card */
+        max-width: none;
+        margin: 0;
+        border-radius: 0;
+        padding: 1.75rem 2rem 2.25rem;
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.82), rgba(255,255,255,0.97));
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .dashboard-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1.25rem;
+        align-items: center;
+        margin-bottom: 1.75rem;
+    }
+
+    .dashboard-title-block h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #0f172a;
+        margin-bottom: 0.15rem;
+    }
+
+    .dashboard-title-block p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #64748b;
+    }
+
+    .study-filter-shell {
+        /* original styles kept for reference – will be overridden below */
+        min-width: 260px;
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.98), rgba(239,246,255,0.96));
+        border-radius: 999px;
+        padding: 0.45rem 1.1rem;
+        border: 1px solid rgba(59,130,246,0.45);
+        box-shadow:
+            0 16px 30px rgba(15,23,42,0.18),
+            0 0 0 1px rgba(148,163,184,0.25);
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+    .study-filter-shell i {
+        color: #2563eb;
+        background: rgba(37,99,235,0.14);
+        border-radius: 999px;
+        padding: 0.45rem;
+        font-size: 0.9rem;
+        box-shadow: 0 8px 18px rgba(37,99,235,0.4);
+    }
+
+    .study-filter-shell label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #0f172a;
+        margin-bottom: 0.05rem;
+        font-weight: 700;
+    }
+
+    .study-filter-shell .form-select {
+        background-color: rgba(255,255,255,0.96);
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.9);
+        padding: 0.35rem 2.1rem 0.35rem 0.85rem;
+        font-size: 0.85rem;
+        box-shadow: none;
+    }
+
+    .study-filter-shell .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+    }
+
+    /* Metric cards row */
+
+    .metric-row {
+        margin-bottom: 1.75rem;
+    }
+
+    .metric-card-analytics {
+        border-radius: 20px;
+        padding: 1.1rem 1.25rem;
+        color: #0f172a;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 14px 28px rgba(15,23,42,0.18);
+        border: 1px solid rgba(148,163,184,0.25);
+        background-size: 220% 220%;
+        animation: metricGradient 18s ease infinite;
+    }
+
+    .metric-card-analytics::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(255,255,255,0.6), transparent 55%);
+        opacity: 0.8;
+        pointer-events: none;
+    }
+
+    .metric-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .metric-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        opacity: 0.8;
+        font-weight: 600;
+    }
+
+    .metric-value {
+        font-size: 1.9rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .metric-sub {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        margin-top: 0.2rem;
+    }
+
+    .metric-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f172a;
+        box-shadow: 0 10px 24px rgba(15,23,42,0.28);
+        background: rgba(15,23,42,0.06);
+    }
+
+    .metric-icon i {
+        font-size: 1.3rem;
+    }
+
+    .metric-total-sites {
+        background: linear-gradient(135deg, #bfdbfe 0%, #60a5fa 40%, #4f46e5 100%);
+    }
+
+    .metric-total-patients {
+        background: linear-gradient(135deg, #ccfbf1 0%, #22c55e 40%, #0ea5e9 100%);
+    }
+
+    .metric-clean-patients {
+        background: linear-gradient(135deg, #dcfce7 0%, #4ade80 35%, #16a34a 100%);
+    }
+
+    .metric-attention-sites {
+        background: linear-gradient(135deg, #fee2e2 0%, #fb923c 40%, #f97316 75%, #ef4444 100%);
+        color: #111827;
+    }
+
+    @keyframes metricGradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Analytics cards (charts & tables) */
+
+    .analytics-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.25);
+        box-shadow: 0 18px 42px rgba(15,23,42,0.22);
+        overflow: hidden;
+        background: linear-gradient(145deg, #ffffff, #f9fafb);
+    }
+
+    .analytics-card .card-header {
+        border-bottom: 1px solid rgba(226,232,240,0.9);
+        padding: 0.85rem 1.25rem;
+        background: linear-gradient(135deg, rgba(239,246,255,0.9), rgba(248,250,252,0.95));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .analytics-card .card-header h5 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .analytics-card .card-header i {
+        font-size: 1.05rem;
+    }
+
+    .analytics-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+        background: rgba(79,70,229,0.06);
+        color: #4f46e5;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .analytics-card .card-body {
+        padding: 1.15rem 1.25rem 1.15rem;
+    }
+
+    .chart-container {
+        height: 320px;
+        position: relative;              /* make room for centered text */
+        padding: 0.5rem 0.25rem 0.25rem; /* a bit more breathing space */
+    }
+
+    .table.analytics-table {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+    }
+
+    .analytics-table thead tr {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .analytics-table th {
+        border: none;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+    }
+
+    .analytics-table td {
+        border: none;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        vertical-align: middle;
+    }
+
+    .analytics-table tbody tr:nth-child(odd) {
+        background-color: #f9fafb;
+    }
+
+    .analytics-table a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .analytics-table a:hover {
+        text-decoration: underline;
+    }
+
+    .badge.dqi-excellent,
+    .badge.dqi-good,
+    .badge.dqi-fair,
+    .badge.dqi-poor,
+    .badge.dqi-critical {
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.78rem;
+        padding: 0.28rem 0.7rem;
+    }
+
+    /* Attention & alerts section */
+
+    .attention-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.25);
+        box-shadow: 0 18px 42px rgba(15,23,42,0.18);
+        background: linear-gradient(140deg, #ffffff, #f9fafb);
+        overflow: hidden;
+    }
+
+    .attention-card .card-header {
+        padding: 0.8rem 1.15rem;
+        border-bottom: 1px solid rgba(226,232,240,0.9);
+        background: linear-gradient(135deg, rgba(248,250,252,0.95), rgba(255,247,237,0.9));
+    }
+
+    .attention-card .card-header h5 {
+        margin: 0;
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .attention-card .card-header i {
+        font-size: 1.05rem;
+    }
+
+    .attention-card .card-body {
+        padding: 1.0rem 1.1rem 1.15rem;
+    }
+
+    .site-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.55rem;
+        margin-bottom: 0.55rem;
+        border-bottom: 1px dashed rgba(209,213,219,0.9);
+    }
+
+    .site-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .site-row strong a {
+        color: #111827;
+        text-decoration: none;
+    }
+
+    .site-row strong a:hover {
+        text-decoration: underline;
+        color: #4f46e5;
+    }
+
+    .site-row small.text-muted {
+        font-size: 0.8rem;
+    }
+
+    .recent-alerts-body {
+        max-height: 380px;
+        overflow-y: auto;
+    }
+
+    .recent-alert-card {
+        border-radius: 14px;
+        border: 1px solid rgba(226,232,240,0.9);
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        box-shadow: 0 8px 18px rgba(15,23,42,0.08);
+    }
+
+    .recent-alert-card .card-body {
+        padding: 0.65rem 0.8rem;
+    }
+
+    .recent-alert-card .badge {
+        border-radius: 999px;
+        font-size: 0.7rem;
+        padding: 0.22rem 0.7rem;
+        font-weight: 600;
+    }
+
+    .recent-alert-card p {
+        font-size: 0.8rem;
+    }
+
+    .recent-alert-card small.text-muted {
+        font-size: 0.74rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .dashboard-shell {
+            padding: 0;
+        }
+        .dashboard-card {
+            padding: 1.35rem 1.1rem 1.75rem;
+            border-radius: 0;
+        }
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .study-filter-shell {
+            width: 100%;
+            justify-content: space-between;
+        }
+        .metric-card-analytics {
+            margin-bottom: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mb-1">Clinical Data Intelligence Dashboard</h1>
-            <p class="text-muted">Real-time overview of clinical trial data quality</p>
+<div class="dashboard-shell">
+    <div class="dashboard-card">
+        <div class="dashboard-header">
+            <div class="dashboard-title-block">
+                <h1 class="mb-1">Clinical Data Intelligence Dashboard</h1>
+                <p>Analytics overview of trial quality, site performance, and risk signals.</p>
+            </div>
+            <div class="study-filter-shell">
+                <i class="fas fa-filter"></i>
+                <div class="flex-grow-1">
+                    <label for="studyFilter">Study Context</label>
+                    <select class="form-select form-select-sm" id="studyFilter" onchange="filterByStudy(this.value)">
+                        <option value="">All Studies</option>
+                        {% for study in studies %}
+                        <option value="{{ study.id }}" {% if selected_study == study.id|stringformat:'s' %}selected{% endif %}>
+                            {{ study.study_id }} - {{ study.study_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
         </div>
-        <div>
-            <select class="form-select" id="studyFilter" onchange="filterByStudy(this.value)">
-                <option value="">All Studies</option>
-                {% for study in studies %}
-                <option value="{{ study.id }}" {% if selected_study == study.id|stringformat:'s' %}selected{% endif %}>
-                    {{ study.study_id }} - {{ study.study_name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
 
-    <!-- Key Metrics Row -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card metric-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+        <!-- Key Metrics Row -->
+        <div class="row metric-row">
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="metric-card-analytics metric-total-sites">
+                    <div class="metric-inner">
                         <div>
-                            <h6 class="text-uppercase mb-1 opacity-75">Total Sites</h6>
-                            <h2 class="mb-0">{{ total_sites|default:0 }}</h2>
+                            <div class="metric-label">Total Sites</div>
+                            <div class="metric-value">{{ total_sites|default:0 }}</div>
+                            <div class="metric-sub">Across all enrolled studies</div>
                         </div>
-                        <i class="fas fa-hospital fa-3x opacity-50"></i>
+                        <div class="metric-icon">
+                            <i class="fas fa-hospital"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card metric-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+            
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="metric-card-analytics metric-total-patients">
+                    <div class="metric-inner">
                         <div>
-                            <h6 class="text-uppercase mb-1 opacity-75">Total Patients</h6>
-                            <h2 class="mb-0">{{ total_patients|default:0 }}</h2>
+                            <div class="metric-label">Total Patients</div>
+                            <div class="metric-value">{{ total_patients|default:0 }}</div>
+                            <div class="metric-sub">All active & historical subjects</div>
                         </div>
-                        <i class="fas fa-users fa-3x opacity-50"></i>
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card metric-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+            
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="metric-card-analytics metric-clean-patients">
+                    <div class="metric-inner">
                         <div>
-                            <h6 class="text-uppercase mb-1 opacity-75">Clean Patients</h6>
-                            <h2 class="mb-0">
+                            <div class="metric-label">Clean Patients</div>
+                            <div class="metric-value">
                                 {{ clean_patients|default:0 }}
-                                <small>({{ clean_percentage|default:0 }}%)</small>
-                            </h2>
-                        </div>
-                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card metric-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase mb-1 opacity-75">Sites Need Attention</h6>
-                            <h2 class="mb-0">
-                                {{ critical_sites|default:0|add:poor_sites|default:0 }}
-                            </h2>
-                        </div>
-                        <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie text-primary"></i> DQI Score Distribution
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container" style="height: 350px;">
-                        <canvas id="dqiChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line text-success"></i> Top Performing Sites
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Site</th>
-                                <th>Name</th>
-                                <th>DQI Score</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for site in top_sites %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'base:site_detail' site.id %}">
-                                        {{ site.site_number }}
-                                    </a>
-                                </td>
-                                <td>{{ site.site_name|truncatewords:3 }}</td>
-                                <td>
-                                    <span class="badge dqi-{{ site.get_dqi_status }}">
-                                        {{ site.dqi_score }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">
-                                        {{ site.get_dqi_status|upper }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-muted text-center">No data available</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alerts & Attention -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-exclamation-circle text-danger"></i> Sites Needing Attention
-                    </h5>
-                    <a href="{% url 'base:site_list' %}?dqi=critical"
-                       class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="card-body">
-                    {% for site in attention_sites %}
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div>
-                            <strong>
-                                <a href="{% url 'base:site_detail' site.id %}">
-                                    Site {{ site.site_number }}
-                                </a>
-                            </strong><br>
-                            <small class="text-muted">{{ site.site_name }}</small>
-                        </div>
-                        <div>
-                            <span class="badge dqi-{{ site.get_dqi_status }}">
-                                DQI: {{ site.dqi_score }}
-                            </span>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p class="text-muted">No sites need immediate attention.</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bell text-warning"></i> Recent Alerts
-                    </h5>
-                    <a href="{% url 'base:alerts' %}"
-                       class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                    {% for alert in recent_alerts %}
-                    <div class="card mb-2 alert-{{ alert.severity }}">
-                        <div class="card-body p-2">
-                            <div class="d-flex justify-content-between">
-                                <span class="badge bg-{{ alert.severity }}">
-                                    {{ alert.severity|upper }}
+                                <span style="font-size:0.85rem; font-weight:600;">
+                                    ({{ clean_percentage|default:0 }}%)
                                 </span>
+                            </div>
+                            <div class="metric-sub">No outstanding data quality issues</div>
+                        </div>
+                        <div class="metric-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="metric-card-analytics metric-attention-sites">
+                    <div class="metric-inner">
+                        <div>
+                            <div class="metric-label">Sites Need Attention</div>
+                            <div class="metric-value">
+                                {{ critical_sites|default:0|add:poor_sites|default:0 }}
+                            </div>
+                            <div class="metric-sub">Based on DQI & alert thresholds</div>
+                        </div>
+                        <div class="metric-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-6">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie text-primary"></i>
+                            DQI Score Distribution
+                        </h5>
+                        <span class="analytics-badge">Portfolio quality mix</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="dqiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line text-success"></i>
+                            Top Performing Sites
+                        </h5>
+                        <span class="analytics-badge">High-quality contributors</span>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm analytics-table">
+                            <thead>
+                                <tr>
+                                    <th>Site</th>
+                                    <th>Name</th>
+                                    <th>DQI Score</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for site in top_sites %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'base:site_detail' site.id %}">
+                                            {{ site.site_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ site.site_name|truncatewords:3 }}</td>
+                                    <td>
+                                        <span class="badge dqi-{{ site.get_dqi_status }}">
+                                            {{ site.dqi_score }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            {{ site.get_dqi_status|upper }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-muted text-center">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts & Attention -->
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card attention-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-circle text-danger"></i>
+                            Sites Needing Attention
+                        </h5>
+                        <a href="{% url 'base:site_list' %}?dqi=critical"
+                           class="btn btn-sm btn-outline-primary">
+                            View All
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% for site in attention_sites %}
+                        <div class="site-row">
+                            <div>
+                                <strong>
+                                    <a href="{% url 'base:site_detail' site.id %}">
+                                        Site {{ site.site_number }}
+                                    </a>
+                                </strong><br>
+                                <small class="text-muted">{{ site.site_name }}</small>
+                            </div>
+                            <div>
+                                <span class="badge dqi-{{ site.get_dqi_status }}">
+                                    DQI: {{ site.dqi_score }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">No sites need immediate attention.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card attention-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bell text-warning"></i>
+                            Recent Alerts
+                        </h5>
+                        <a href="{% url 'base:alerts' %}"
+                           class="btn btn-sm btn-outline-primary">
+                            View All
+                        </a>
+                    </div>
+                    <div class="card-body recent-alerts-body">
+                        {% for alert in recent_alerts %}
+                        <div class="card mb-2 recent-alert-card alert-{{ alert.severity }}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-{{ alert.severity }}">
+                                        {{ alert.severity|upper }}
+                                    </span>
+                                    <small class="text-muted">
+                                        {{ alert.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                                <p class="mb-1 mt-2">
+                                    <small>{{ alert.message }}</small>
+                                </p>
                                 <small class="text-muted">
-                                    {{ alert.created_at|timesince }} ago
+                                    Site: {{ alert.site.site_number }}
                                 </small>
                             </div>
-                            <p class="mb-1 mt-2">
-                                <small>{{ alert.message }}</small>
-                            </p>
-                            <small class="text-muted">
-                                Site: {{ alert.site.site_number }}
-                            </small>
                         </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">No recent alerts.</p>
+                        {% endfor %}
                     </div>
-                    {% empty %}
-                    <p class="text-muted">No recent alerts.</p>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -231,11 +661,42 @@ function filterByStudy(studyId) {
         : '{% url "base:dashboard" %}';
 }
 
-/* ---------- DQI Chart ---------- */
+/* ---------- Enhanced DQI Chart ---------- */
 
 const ctx = document.getElementById('dqiChart');
 
 if (ctx) {
+    const excellent = Number('{{ excellent_sites|default:0 }}');
+    const good      = Number('{{ good_sites|default:0 }}');
+    const fair      = Number('{{ fair_sites|default:0 }}');
+    const poor      = Number('{{ poor_sites|default:0 }}');
+    const critical  = Number('{{ critical_sites|default:0 }}');
+    const total     = excellent + good + fair + poor + critical;
+
+    // plugin to draw text in the center of the doughnut
+    const centerTextPlugin = {
+        id: 'centerTextPlugin',
+        afterDraw(chart, args, options) {
+            const { ctx, chartArea: { left, right, top, bottom } } = chart;
+            const x = (left + right) / 2;
+            const y = (top + bottom) / 2;
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '600 12px "Segoe UI", system-ui, -apple-system';
+            ctx.fillText('Total Sites', x, y - 10);
+
+            ctx.fillStyle = '#111827';
+            ctx.font = '800 18px "Segoe UI", system-ui, -apple-system';
+            ctx.fillText(total.toString(), x, y + 10);
+
+            ctx.restore();
+        }
+    };
+
     new Chart(ctx.getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -247,13 +708,8 @@ if (ctx) {
                 'Critical (0–44)'
             ],
             datasets: [{
-                data: [
-                    Number('{{ excellent_sites|default:0 }}'),
-                    Number('{{ good_sites|default:0 }}'),
-                    Number('{{ fair_sites|default:0 }}'),
-                    Number('{{ poor_sites|default:0 }}'),
-                    Number('{{ critical_sites|default:0 }}')
-                ],
+                label: 'Number of sites',
+                data: [excellent, good, fair, poor, critical],
                 backgroundColor: [
                     '#10b981',
                     '#84cc16',
@@ -268,23 +724,50 @@ if (ctx) {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '65%',
+            layout: {
+                padding: 10
+            },
             plugins: {
+                title: {
+                    display: true,
+                    text: 'Data Quality Index by Site Count',
+                    align: 'start',
+                    padding: { bottom: 10 },
+                    font: {
+                        size: 14,
+                        weight: '700',
+                        family: '"Segoe UI", system-ui, -apple-system'
+                    },
+                    color: '#111827'
+                },
                 legend: {
-                    position: 'bottom',
+                    position: 'right',
+                    align: 'center',
                     labels: {
-                        padding: 15,
-                        boxWidth: 12
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 10,
+                        padding: 14,
+                        font: {
+                            size: 11,
+                            family: '"Segoe UI", system-ui, -apple-system'
+                        },
+                        color: '#374151'
                     }
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
-                            return `${context.label}: ${context.raw}`;
+                        label(context) {
+                            const label = context.label || '';
+                            const value = context.raw ?? 0;
+                            const pct = total ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} site(s) (${pct}%)`;
                         }
                     }
                 }
             }
-        }
+        },
+        plugins: [centerTextPlugin]
     });
 }
 </script>
