@@ -2,118 +2,649 @@
 
 {% block title %}Sites - NEST 2.0{% endblock %}
 
-{% block content %}
-<div class="main-content">
-    <h1 class="mb-4">All Sites</h1>
-    
-    <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Study</label>
-                    <select name="study" class="form-select">
-                        <option value="">All Studies</option>
-                        {% for study in studies %}
-                        <option value="{{ study.id }}" {% if selected_study == study.id|stringformat:'s' %}selected{% endif %}>
-                            {{ study.study_id }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
-                        <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactive</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">DQI Filter</label>
-                    <select name="dqi" class="form-select">
-                        <option value="">All DQI Levels</option>
-                        <option value="critical" {% if selected_dqi == 'critical' %}selected{% endif %}>Critical (< 45)</option>
-                        <option value="poor" {% if selected_dqi == 'poor' %}selected{% endif %}>Poor (45-59)</option>
-                        <option value="fair" {% if selected_dqi == 'fair' %}selected{% endif %}>Fair (60-74)</option>
-                        <option value="good" {% if selected_dqi == 'good' %}selected{% endif %}>Good (≥ 75)</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-filter"></i> Apply Filters
-                    </button>
-                    <a href="{% url 'base:site_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i> Reset
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
+{% block extra_css %}
+<style>
+    .sites-shell {
+        padding: 0;
+        min-height: calc(100vh - 80px);
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.65), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(59,130,246,0.15), transparent 55%),
+                    #0f172a;
+    }
 
-    <!-- Sites Table -->
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Site Number</th>
-                            <th>Site Name</th>
-                            <th>Country</th>
-                            <th>Study</th>
-                            <th>DQI Score</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for site in page_obj %}
-                        <tr>
-                            <td><strong>{{ site.site_number }}</strong></td>
-                            <td>{{ site.site_name }}</td>
-                            <td>{{ site.country }}</td>
-                            <td>{{ site.study.study_id }}</td>
-                            <td><span class="dqi-badge badge dqi-{{ site.get_dqi_status }}">{{ site.dqi_score }}</span></td>
-                            <td><span class="badge bg-{{ site.status }}">{{ site.get_status_display }}</span></td>
-                            <td>
-                                <a href="{% url 'base:site_detail' site.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    .sites-card {
+        padding: 0;
+        border-radius: 0;
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.95), rgba(248,250,252,0.99));
+        box-shadow: none;
+    }
+
+    /* ENHANCED Header */
+    .sites-header {
+        padding: 2.2rem 2rem;
+        border-bottom: 2px solid rgba(226,232,240,0.9);
+        background: linear-gradient(135deg, rgba(239,246,255,0.95), rgba(248,250,252,0.98));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Decorative gradient background */
+    .sites-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(37,99,235,0.08), transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+    }
+
+    .sites-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(79,70,229,0.06), transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+    }
+
+    .sites-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        position: relative;
+        z-index: 1;
+        flex: 1;
+    }
+
+    .sites-header-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #dbeafe, #60a5fa);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #0f172a;
+        box-shadow: 0 12px 28px rgba(37,99,235,0.25);
+    }
+
+    .sites-header-text h1 {
+        font-size: 2.1rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        color: #0f172a;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .sites-header-text p {
+        margin: 0.3rem 0 0;
+        font-size: 0.95rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .sites-stats-container {
+        display: flex;
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Enhanced Stats Card */
+    .stat-card {
+        padding: 1rem 1.4rem;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        border: 1.5px solid rgba(226,232,240,0.9);
+        box-shadow: 0 10px 28px rgba(15,23,42,0.15);
+        text-align: center;
+        min-width: 140px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #2563eb, #4f46e5);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 36px rgba(37,99,235,0.25);
+        border-color: #2563eb;
+    }
+
+    .stat-card strong {
+        display: block;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.1;
+    }
+
+    .stat-card span {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #6b7280;
+        font-weight: 700;
+        margin-top: 0.4rem;
+    }
+
+    /* Content */
+    .sites-content {
+        padding: 2rem;
+    }
+
+    /* Filter Card */
+    .filter-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.3);
+        box-shadow: 0 18px 40px rgba(15,23,42,0.22);
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        margin-bottom: 1.6rem;
+    }
+
+    .filter-card .card-header {
+        border-bottom: 1px solid rgba(226,232,240,0.95);
+        padding: 0.85rem 1.2rem;
+        background: linear-gradient(135deg, rgba(239,246,255,0.98), rgba(248,250,252,0.99));
+    }
+
+    .filter-card .card-header h5 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .filter-card .card-body {
+        padding: 1.2rem 1.3rem;
+    }
+
+    .filter-card label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+        color: #6b7280;
+        margin-bottom: 0.4rem;
+    }
+
+    .filter-card .form-select {
+        border-radius: 12px;
+        border: 1px solid rgba(148,163,184,0.4);
+        padding: 0.6rem 0.9rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .filter-card .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+        outline: none;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 0.6rem;
+    }
+
+    .btn-filter {
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .btn-filter.btn-primary {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(37,99,235,0.35);
+    }
+
+    .btn-filter.btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37,99,235,0.45);
+    }
+
+    .btn-filter.btn-secondary {
+        background: rgba(148,163,184,0.15);
+        color: #374151;
+    }
+
+    .btn-filter.btn-secondary:hover {
+        background: rgba(148,163,184,0.25);
+    }
+
+    /* Table Card */
+    .table-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.3);
+        box-shadow: 0 20px 45px rgba(15,23,42,0.25);
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+    }
+
+    .table-card .card-body {
+        padding: 0;
+    }
+
+    .sites-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .table.sites-table {
+        margin-bottom: 0;
+        font-size: 0.88rem;
+    }
+
+    .sites-table thead {
+        background: linear-gradient(135deg, rgba(239,246,255,0.98), rgba(248,250,252,0.99));
+        border-bottom: 2px solid rgba(226,232,240,0.95);
+    }
+
+    .sites-table th {
+        border: none;
+        color: #6b7280;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.72rem;
+        padding: 0.9rem 1rem;
+    }
+
+    .sites-table td {
+        border: none;
+        padding: 0.8rem 1rem;
+        vertical-align: middle;
+        color: #374151;
+    }
+
+    .sites-table tbody tr {
+        border-bottom: 1px solid rgba(226,232,240,0.6);
+        transition: all 0.2s ease;
+    }
+
+    .sites-table tbody tr:nth-child(odd) {
+        background-color: #f9fafb;
+    }
+
+    .sites-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(239,246,255,0.6), rgba(219,234,254,0.4));
+        transform: translateX(3px);
+    }
+
+    .sites-table td strong {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    /* DQI Badge */
+    .dqi-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: 0 4px 10px rgba(15,23,42,0.2);
+    }
+
+    .dqi-badge.dqi-excellent {
+        background: linear-gradient(135deg, #bbf7d0, #34d399);
+        color: #0f5132;
+    }
+
+    .dqi-badge.dqi-good {
+        background: linear-gradient(135deg, #dcfce7, #86efac);
+        color: #0f5132;
+    }
+
+    .dqi-badge.dqi-fair {
+        background: linear-gradient(135deg, #fef3c7, #fcd34d);
+        color: #854d0e;
+    }
+
+    .dqi-badge.dqi-poor {
+        background: linear-gradient(135deg, #fed7aa, #fdba74);
+        color: #fff;
+    }
+
+    .dqi-badge.dqi-critical {
+        background: linear-gradient(135deg, #fee2e2, #fca5a5);
+        color: #fff;
+    }
+
+    /* Status Badge */
+    .badge.bg-active {
+        background: linear-gradient(135deg, #bbf7d0, #22c55e) !important;
+        color: #0f172a !important;
+    }
+
+    .badge.bg-inactive {
+        background: rgba(148,163,184,0.2) !important;
+        color: #111827 !important;
+    }
+
+    .badge {
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.3rem 0.7rem;
+    }
+
+    /* Action Button */
+    .btn-view {
+        border-radius: 10px;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: 1px solid rgba(37,99,235,0.3);
+        color: #2563eb;
+        background: rgba(37,99,235,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .btn-view:hover {
+        background: rgba(37,99,235,0.12);
+        border-color: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(37,99,235,0.25);
+    }
+
+    /* Pagination */
+    .pagination-wrapper {
+        padding: 1.2rem 1.5rem;
+        border-top: 1px solid rgba(226,232,240,0.8);
+        background: linear-gradient(135deg, rgba(248,250,252,0.95), rgba(239,246,255,0.85));
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .page-item .page-link {
+        border: 1px solid rgba(148,163,184,0.3);
+        color: #374151;
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0 0.2rem;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .page-item .page-link:hover {
+        background: rgba(37,99,235,0.08);
+        border-color: #2563eb;
+        color: #2563eb;
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        border-color: #2563eb;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(37,99,235,0.35);
+    }
+
+    .page-item.disabled .page-link {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 991.98px) {
+        .sites-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .sites-header-content {
+            width: 100%;
+        }
+        .sites-stats-container {
+            width: 100%;
+            justify-content: space-between;
+        }
+        .sites-content {
+            padding: 1.2rem 1rem 1.6rem;
+        }
+        .filter-actions {
+            width: 100%;
+        }
+        .btn-filter {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sites-shell">
+    <div class="sites-card">
+        <!-- ENHANCED Header -->
+        <div class="sites-header">
+            <div class="sites-header-content">
+                <div class="sites-header-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="sites-header-text">
+                    <h1>All Sites</h1>
+                    <p>Manage and monitor research sites</p>
+                </div>
             </div>
-            
-            <!-- Pagination -->
-            <nav>
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1">First</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                    </li>
-                    {% endif %}
-                    
-                    <li class="page-item active">
-                        <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-                    </li>
-                    
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+
+            <!-- Stats Container -->
+            <div class="sites-stats-container">
+                <div class="stat-card">
+                    <strong id="totalSitesCount">{{ page_obj.paginator.count }}</strong>
+                    <span>Total Sites</span>
+                </div>
+                <div class="stat-card">
+                    <strong id="activeSitesCount">0</strong>
+                    <span>Active Sites</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="sites-content">
+            <!-- Filters -->
+            <div class="filter-card">
+                <div class="card-header">
+                    <h5>
+                        <i class="fas fa-filter text-primary"></i>
+                        Filter Sites
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Study</label>
+                            <select name="study" class="form-select">
+                                <option value="">All Studies</option>
+                                {% for study in studies %}
+                                <option value="{{ study.id }}" {% if selected_study == study.id|stringformat:'s' %}selected{% endif %}>
+                                    {{ study.study_id }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">DQI Filter</label>
+                            <select name="dqi" class="form-select">
+                                <option value="">All DQI Levels</option>
+                                <option value="critical" {% if selected_dqi == 'critical' %}selected{% endif %}>Critical (< 45)</option>
+                                <option value="poor" {% if selected_dqi == 'poor' %}selected{% endif %}>Poor (45-59)</option>
+                                <option value="fair" {% if selected_dqi == 'fair' %}selected{% endif %}>Fair (60-74)</option>
+                                <option value="good" {% if selected_dqi == 'good' %}selected{% endif %}>Good (≥ 75)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="filter-actions">
+                                <button type="submit" class="btn btn-filter btn-primary">
+                                    <i class="fas fa-search"></i> Apply
+                                </button>
+                                <a href="{% url 'base:site_list' %}" class="btn btn-filter btn-secondary">
+                                    <i class="fas fa-redo"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sites Table -->
+            <div class="table-card">
+                <div class="card-body">
+                    <div class="sites-table-wrapper">
+                        <table class="table sites-table">
+                            <thead>
+                                <tr>
+                                    <th>Site Number</th>
+                                    <th>Site Name</th>
+                                    <th>Country</th>
+                                    <th>Study</th>
+                                    <th>DQI Score</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for site in page_obj %}
+                                <tr>
+                                    <td><strong>{{ site.site_number }}</strong></td>
+                                    <td>{{ site.site_name }}</td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt text-muted" style="font-size:0.8rem; margin-right:0.3rem;"></i>
+                                        {{ site.country }}
+                                    </td>
+                                    <td>{{ site.study.study_id }}</td>
+                                    <td>
+                                        <span class="dqi-badge dqi-{{ site.get_dqi_status }}">
+                                            {{ site.dqi_score }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ site.status }}">
+                                            {{ site.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'base:site_detail' site.id %}" class="btn btn-view">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted" style="padding:2rem;">
+                                        <i class="fas fa-inbox" style="font-size:2rem; margin-bottom:0.5rem; display:block;"></i>
+                                        No sites found matching your filters.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="pagination-wrapper">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if selected_study %}&study={{ selected_study }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_dqi %}&dqi={{ selected_dqi }}{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i> First
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_study %}&study={{ selected_study }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_dqi %}&dqi={{ selected_dqi }}{% endif %}">
+                                    <i class="fas fa-angle-left"></i> Prev
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-double-left"></i> First</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-left"></i> Prev</span>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_study %}&study={{ selected_study }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_dqi %}&dqi={{ selected_dqi }}{% endif %}">
+                                    Next <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_study %}&study={{ selected_study }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_dqi %}&dqi={{ selected_dqi }}{% endif %}">
+                                    Last <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Next <i class="fas fa-angle-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Last <i class="fas fa-angle-double-right"></i></span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+// Calculate active sites count
+document.addEventListener('DOMContentLoaded', () => {
+    const activeSites = document.querySelectorAll('td .badge.bg-active').length;
+    document.getElementById('activeSitesCount').textContent = activeSites;
+});
+</script>
 {% endblock %}
