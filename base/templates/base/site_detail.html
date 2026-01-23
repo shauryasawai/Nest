@@ -2,215 +2,769 @@
 
 {% block title %}Site {{ site.site_number }} - NEST 2.0{% endblock %}
 
+{% block extra_css %}
+<style>
+    .site-shell {
+        padding: 0;
+        min-height: calc(100vh - 80px);
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.65), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(59,130,246,0.15), transparent 55%),
+                    #0f172a;
+    }
+
+    .site-card {
+        padding: 0;
+        border-radius: 0;
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.95), rgba(248,250,252,0.99));
+        box-shadow: none;
+    }
+
+    /* Site Header */
+
+    .site-header {
+        padding: 1.8rem 2rem 1.2rem;
+        border-bottom: 1px solid rgba(226,232,240,0.8);
+        background: linear-gradient(135deg, rgba(239,246,255,0.8), rgba(248,250,252,0.95));
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.2rem;
+    }
+
+    .site-title h1 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #0f172a;
+        margin-bottom: 0.15rem;
+    }
+
+    .site-title p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #6b7280;
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+    }
+
+    .site-title a {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .site-title a:hover {
+        text-decoration: underline;
+    }
+
+    .site-dqi-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dqi-badge {
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        box-shadow: 0 12px 28px rgba(15,23,42,0.35);
+    }
+
+    .dqi-excellent {
+        background: linear-gradient(135deg, #bbf7d0, #34d399, #059669);
+        color: #fff;
+    }
+
+    .dqi-good {
+        background: linear-gradient(135deg, #dcfce7, #86efac, #22c55e);
+        color: #0f172a;
+    }
+
+    .dqi-fair {
+        background: linear-gradient(135deg, #fef3c7, #fcd34d, #f59e0b);
+        color: #0f172a;
+    }
+
+    .dqi-poor {
+        background: linear-gradient(135deg, #fed7aa, #fdba74, #f97316);
+        color: #fff;
+    }
+
+    .dqi-critical {
+        background: linear-gradient(135deg, #fee2e2, #fca5a5, #ef4444);
+        color: #fff;
+    }
+
+    .dqi-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    /* Main Content */
+
+    .site-content {
+        padding: 2rem;
+    }
+
+    /* Metrics Cards Row */
+
+    .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.2rem;
+        margin-bottom: 1.8rem;
+    }
+
+    .metric-card {
+        border-radius: 18px;
+        padding: 1.1rem 1.2rem;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(148,163,184,0.3);
+        box-shadow: 0 14px 32px rgba(15,23,42,0.22);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.8rem;
+        transition: transform 0.2s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 38px rgba(15,23,42,0.28);
+    }
+
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(255,255,255,0.7), transparent 55%);
+        pointer-events: none;
+    }
+
+    .metric-content {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+    }
+
+    .metric-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        opacity: 0.85;
+        font-weight: 700;
+        margin-bottom: 0.1rem;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: #0f172a;
+    }
+
+    .metric-sub {
+        font-size: 0.78rem;
+        opacity: 0.9;
+        margin-top: 0.15rem;
+    }
+
+    .metric-icon {
+        position: relative;
+        z-index: 1;
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: rgba(15,23,42,0.08);
+        box-shadow: 0 10px 24px rgba(15,23,42,0.28);
+        color: #0f172a;
+    }
+
+    .metric-icon i {
+        font-size: 1.25rem;
+    }
+
+    .metric-total-patients {
+        background: linear-gradient(135deg, #dbeafe 0%, #60a5fa 40%, #2563eb 100%);
+    }
+
+    .metric-clean {
+        background: linear-gradient(135deg, #dcfce7 0%, #86efac 40%, #22c55e 100%);
+    }
+
+    .metric-queries {
+        background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 40%, #f59e0b 100%);
+    }
+
+    .metric-completion {
+        background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 40%, #0ea5e9 100%);
+    }
+
+    /* Section Cards */
+
+    .section-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.3);
+        box-shadow: 0 20px 45px rgba(15,23,42,0.25);
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        margin-bottom: 1.6rem;
+    }
+
+    .section-card .card-header {
+        border-bottom: 1px solid rgba(226,232,240,0.95);
+        padding: 0.85rem 1.2rem;
+        background: linear-gradient(135deg, rgba(239,246,255,0.98), rgba(248,250,252,0.99));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-card .card-header h5 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .section-card .card-header i {
+        font-size: 1.1rem;
+    }
+
+    .section-card .card-body {
+        padding: 1.15rem 1.2rem 1.2rem;
+    }
+
+    .section-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(79,70,229,0.08);
+        color: #4f46e5;
+        font-weight: 600;
+    }
+
+    /* AI Insights */
+
+    .ai-insight-box {
+        background: linear-gradient(135deg, rgba(79,70,229,0.08), rgba(99,102,241,0.08));
+        border-left: 3px solid #4f46e5;
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 0.8rem;
+        border: 1px solid rgba(79,70,229,0.2);
+        box-shadow: 0 8px 20px rgba(79,70,229,0.15);
+    }
+
+    .ai-insight-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.6rem;
+    }
+
+    .ai-insight-type {
+        font-weight: 700;
+        color: #4f46e5;
+        font-size: 0.85rem;
+    }
+
+    .ai-insight-timestamp {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .ai-insight-content {
+        font-size: 0.9rem;
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    .ai-insight-content h3,
+    .ai-insight-content h4 {
+        margin-top: 0.8rem;
+        margin-bottom: 0.4rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .ai-insight-content ul {
+        padding-left: 1.3rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .ai-insight-content li {
+        margin-bottom: 0.3rem;
+    }
+
+    .ai-insight-content p {
+        margin-bottom: 0.5rem;
+    }
+
+    .ai-query-form {
+        margin-top: 1.2rem;
+        padding-top: 1.2rem;
+        border-top: 1px dashed rgba(226,232,240,0.8);
+    }
+
+    .ai-query-form .input-group {
+        box-shadow: 0 10px 24px rgba(79,70,229,0.2);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .ai-query-form .form-control {
+        border: none;
+        padding: 0.65rem 1.1rem;
+    }
+
+    .ai-query-form .btn {
+        border: none;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #fff;
+        font-weight: 600;
+        padding: 0.65rem 1.4rem;
+    }
+
+    .ai-query-form .btn:hover {
+        box-shadow: 0 8px 18px rgba(79,70,229,0.5);
+    }
+
+    #aiAnswer {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(79,70,229,0.08), rgba(99,102,241,0.08));
+        border: 1px solid rgba(79,70,229,0.2);
+        box-shadow: 0 8px 20px rgba(79,70,229,0.15);
+    }
+
+    /* Alerts */
+
+    .alerts-container {
+        max-height: 420px;
+        overflow-y: auto;
+        padding: 0.2rem;
+    }
+
+    .alert-card-item {
+        border-radius: 14px;
+        border-left: 3px solid;
+        padding: 0.75rem 0.9rem;
+        margin-bottom: 0.7rem;
+        background: #fff;
+        box-shadow: 0 8px 18px rgba(15,23,42,0.12);
+        transition: transform 0.2s ease;
+    }
+
+    .alert-card-item:hover {
+        transform: translateX(-3px);
+    }
+
+    .alert-card-item.critical {
+        border-left-color: #ef4444;
+        background: rgba(239,68,68,0.06);
+    }
+
+    .alert-card-item.high {
+        border-left-color: #f97316;
+        background: rgba(249,115,22,0.06);
+    }
+
+    .alert-card-item.medium {
+        border-left-color: #f59e0b;
+        background: rgba(245,158,11,0.06);
+    }
+
+    .alert-card-item.low {
+        border-left-color: #3b82f6;
+        background: rgba(59,130,246,0.06);
+    }
+
+    /* UPDATED: Fix badge visibility in alerts */
+    .badge {
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .badge.bg-critical {
+        background: linear-gradient(135deg, #fee2e2, #ef4444) !important;
+        color: #fff !important;
+    }
+
+    .badge.bg-high {
+        background: linear-gradient(135deg, #fed7aa, #f97316) !important;
+        color: #fff !important;
+    }
+
+    .badge.bg-medium {
+        background: linear-gradient(135deg, #fef3c7, #f59e0b) !important;
+        color: #0f172a !important;
+    }
+
+    .badge.bg-low {
+        background: linear-gradient(135deg, #dbeafe, #3b82f6) !important;
+        color: #fff !important;
+    }
+
+    /* Tables */
+
+    .table.site-table {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+    }
+
+    .site-table thead tr {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .site-table th {
+        border: none;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+    }
+
+    .site-table td {
+        border: none;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        vertical-align: middle;
+    }
+
+    .site-table tbody tr {
+        border-bottom: 1px solid rgba(226,232,240,0.8);
+    }
+
+    .site-table tbody tr:nth-child(odd) {
+        background-color: #f9fafb;
+    }
+
+    .site-table tbody tr:hover {
+        background-color: #eff6ff;
+    }
+
+    .site-table a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .site-table a:hover {
+        text-decoration: underline;
+    }
+
+    .btn-action {
+        border-radius: 8px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Chart Card */
+
+    .chart-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.3);
+        box-shadow: 0 20px 45px rgba(15,23,42,0.25);
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        margin-bottom: 1.6rem;
+    }
+
+    .chart-card .card-header {
+        border-bottom: 1px solid rgba(226,232,240,0.95);
+        padding: 0.85rem 1.2rem;
+        background: linear-gradient(135deg, rgba(239,246,255,0.98), rgba(248,250,252,0.99));
+    }
+
+    .chart-container {
+        height: 340px;
+        position: relative;
+        padding: 0.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .site-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .site-content {
+            padding: 1.2rem 1rem 1.6rem;
+        }
+        .metrics-row {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
+<div class="site-shell">
+    <div class="site-card">
+        <!-- Header -->
+        <div class="site-header">
+            <div class="site-title">
+                <h1>Site {{ site.site_number }}</h1>
+                <p>
+                    <i class="fas fa-hospital"></i> {{ site.site_name }}<br>
+                    <span style="font-size:0.85rem;">
+                        <i class="fas fa-map-marker-alt"></i> {{ site.country }} &nbsp;|&nbsp;
+                        <i class="fas fa-user-md"></i> {{ site.investigator_name }}
+                    </span>
+                </p>
+            </div>
+            <div class="site-dqi-display">
+                <div class="dqi-label">Data Quality Index</div>
+                <span class="dqi-badge dqi-{{ site.get_dqi_status }}">
+                    {{ site.dqi_score }}/100
+                </span>
+            </div>
+        </div>
 
-    <!-- Site Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1>Site {{ site.site_number }} - {{ site.site_name }}</h1>
-            <p class="text-muted">{{ site.country }} | {{ site.investigator_name }}</p>
-        </div>
-        <div>
-            <span class="dqi-badge badge dqi-{{ site.get_dqi_status }}">
-                DQI: {{ site.dqi_score }}/100
-            </span>
-        </div>
-    </div>
-
-    <!-- Metrics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card"><div class="card-body">
-                <h6 class="text-uppercase text-muted mb-2">Total Patients</h6>
-                <h3>{{ metrics.total_patients }}</h3>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card"><div class="card-body">
-                <h6 class="text-uppercase text-muted mb-2">Clean Patients</h6>
-                <h3 class="text-success">{{ metrics.clean_patients }}</h3>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card"><div class="card-body">
-                <h6 class="text-uppercase text-muted mb-2">Open Queries</h6>
-                <h3 class="text-warning">{{ metrics.open_queries }}</h3>
-                <small class="text-muted">Avg age: {{ metrics.avg_query_age }} days</small>
-            </div></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card"><div class="card-body">
-                <h6 class="text-uppercase text-muted mb-2">Visit Completion</h6>
-                <h3 class="text-info">{{ metrics.completion_rate }}%</h3>
-            </div></div>
-        </div>
-    </div>
-
-    <!-- AI Insights & Alerts -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-robot text-primary"></i> AI Insights
-                    </h5>
-                    <button class="btn btn-sm btn-primary"
-                            onclick="generateInsight('summary', this)">
-                        <i class="fas fa-magic"></i> Generate Summary
-                    </button>
+        <!-- Content -->
+        <div class="site-content">
+            <!-- Metrics Row -->
+            <div class="metrics-row">
+                <div class="metric-card metric-total-patients">
+                    <div class="metric-content">
+                        <div class="metric-label">Total Patients</div>
+                        <div class="metric-value">{{ metrics.total_patients }}</div>
+                        <div class="metric-sub">Enrolled subjects</div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
                 </div>
 
-                <div class="card-body">
-
-                    <!-- AI Insights -->
-                    <div id="aiInsightsContainer">
-                        {% for insight in ai_insights %}
-                        <div class="mb-3 p-3 bg-light rounded">
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <strong class="text-primary">
-                                    {{ insight.get_insight_type_display }}
-                                </strong>
-                                <small class="text-muted">
-                                    {{ insight.created_at|timesince }} ago
-                                </small>
-                            </div>
-
-                            <div class="ai-insight-content">
-                                {{ insight.content|linebreaks }}
-                            </div>
-
-                        </div>
-                        {% empty %}
-                        <p class="text-muted">
-                            No AI insights generated yet. Click the button above to generate.
-                        </p>
-                        {% endfor %}
+                <div class="metric-card metric-clean">
+                    <div class="metric-content">
+                        <div class="metric-label">Clean Patients</div>
+                        <div class="metric-value">{{ metrics.clean_patients }}</div>
+                        <div class="metric-sub">No outstanding issues</div>
                     </div>
+                    <div class="metric-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
 
-                    <!-- AI Query -->
-                    <form id="aiQueryForm" class="mt-4">
-                        {% csrf_token %}
-                        <div class="input-group">
-                            <input type="text"
-                                   class="form-control"
-                                   id="customQuery"
-                                   placeholder="Ask a question about this site..."
-                                   required>
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-paper-plane"></i> Ask AI
+                <div class="metric-card metric-queries">
+                    <div class="metric-content">
+                        <div class="metric-label">Open Queries</div>
+                        <div class="metric-value">{{ metrics.open_queries }}</div>
+                        <div class="metric-sub">Avg {{ metrics.avg_query_age }} days old</div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                </div>
+
+                <div class="metric-card metric-completion">
+                    <div class="metric-content">
+                        <div class="metric-label">Visit Completion</div>
+                        <div class="metric-value">{{ metrics.completion_rate }}%</div>
+                        <div class="metric-sub">Protocol adherence</div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DQI Trend Chart -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-success"></i> DQI Score Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="dqiTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights & Alerts -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-8">
+                    <div class="section-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-robot text-primary"></i> AI Insights
+                            </h5>
+                            <button class="btn btn-sm btn-primary btn-action"
+                                    onclick="generateInsight('summary', this)">
+                                <i class="fas fa-magic"></i> Generate Summary
                             </button>
                         </div>
-                    </form>
 
-                    <div id="aiAnswer" class="mt-3"></div>
-                </div>
-            </div>
-        </div>
+                        <div class="card-body">
+                            <div id="aiInsightsContainer">
+                                {% for insight in ai_insights %}
+                                <div class="ai-insight-box">
+                                    <div class="ai-insight-header">
+                                        <span class="ai-insight-type">
+                                            {{ insight.get_insight_type_display }}
+                                        </span>
+                                        <span class="ai-insight-timestamp">
+                                            {{ insight.created_at|timesince }} ago
+                                        </span>
+                                    </div>
+                                    <div class="ai-insight-content">
+                                        {{ insight.content|linebreaks }}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-lightbulb"></i> No AI insights yet. Click "Generate Summary" to get started.
+                                </p>
+                                {% endfor %}
+                            </div>
 
-        <!-- Alerts -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bell text-warning"></i> Active Alerts
-                    </h5>
-                </div>
-                <div class="card-body" style="max-height:400px;overflow-y:auto;">
-                    {% for alert in alerts %}
-                    <div class="card mb-2 alert-{{ alert.severity }}">
-                        <div class="card-body p-2">
-                            <span class="badge bg-{{ alert.severity }}">
-                                {{ alert.severity|upper }}
-                            </span>
-                            <p class="mb-0 mt-1">
-                                <small>{{ alert.message }}</small>
-                            </p>
+                            <form id="aiQueryForm" class="ai-query-form">
+                                {% csrf_token %}
+                                <label style="font-size:0.8rem; font-weight:600; margin-bottom:0.6rem; display:block;">
+                                    Ask AI about this site
+                                </label>
+                                <div class="input-group">
+                                    <input type="text"
+                                           class="form-control"
+                                           id="customQuery"
+                                           placeholder="e.g., What's the main issue with this site?"
+                                           required>
+                                    <button class="btn" type="submit">
+                                        <i class="fas fa-paper-plane"></i> Ask
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div id="aiAnswer"></div>
                         </div>
                     </div>
-                    {% empty %}
-                    <p class="text-muted">No active alerts.</p>
-                    {% endfor %}
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="section-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell text-warning"></i> Active Alerts
+                            </h5>
+                            <span class="section-badge">{{ alerts|length }} total</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="alerts-container">
+                                {% for alert in alerts %}
+                                <div class="alert-card-item {{ alert.severity }}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-{{ alert.severity }}">
+                                            {{ alert.severity|upper }}
+                                        </span>
+                                        <small style="color:#6b7280; font-weight:600;">
+                                            {{ alert.created_at|timesince }} ago
+                                        </small>
+                                    </div>
+                                    <p class="mb-0" style="font-size:0.85rem; color:#111827; font-weight:500;">
+                                        {{ alert.message }}
+                                    </p>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted mb-0 text-center" style="color:#6b7280 !important;">
+                                    <i class="fas fa-check-circle"></i> No active alerts
+                                </p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patients Table -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users text-info"></i> Patients ({{ patients.count }})
+                    </h5>
+                    <span class="section-badge">Complete roster</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table site-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient ID</th>
+                                    <th>Enrollment Date</th>
+                                    <th>Status</th>
+                                    <th>Issues</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'base:patient_detail' patient.id %}">
+                                            {{ patient.patient_id }}
+                                        </a>
+                                    </td>
+                                    <td>{{ patient.enrollment_date|default:"N/A" }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if patient.status == 'clean' %}
+                                                bg-success text-dark
+                                            {% elif patient.status == 'minor' %}
+                                                bg-warning text-dark
+                                            {% elif patient.status == 'major' or patient.status == 'critical' %}
+                                                bg-danger text-white
+                                            {% else %}
+                                                bg-secondary text-white
+                                            {% endif %}
+                                        ">
+                                            {{ patient.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ patient.issues_count }}</td>
+                                    <td>
+                                        <a href="{% url 'base:patient_detail' patient.id %}"
+                                           class="btn btn-sm btn-outline-primary btn-action">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- DQI Trend -->
-    <div class="card mb-4">
-        <div class="card-header bg-white">
-            <h5><i class="fas fa-chart-line text-success"></i> DQI Score Trend</h5>
-        </div>
-        <div class="card-body">
-            <canvas id="dqiTrendChart"></canvas>
-        </div>
-    </div>
-
 </div>
-<!-- Patients Table -->
-    <div class="card">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="fas fa-users text-info"></i> Patients ({{ patients.count }})</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Patient ID</th>
-                            <th>Enrollment Date</th>
-                            <th>Status</th>
-                            <th>Issues</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for patient in patients %}
-                        <tr>
-                            <td><a href="{% url 'base:patient_detail' patient.id %}">{{ patient.patient_id }}</a></td>
-                            <td>{{ patient.enrollment_date|default:"N/A" }}</td>
-                            <td><span class="badge bg-{{ patient.status }}">{{ patient.get_status_display }}</span></td>
-                            <td>{{ patient.issues_count }}</td>
-                            <td>
-                                <a href="{% url 'base:patient_detail' patient.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ==================== STYLES ==================== -->
-<style>
-.ai-insight-content h3,
-.ai-insight-content h4 {
-    margin-top: 1rem;
-    font-weight: 600;
-}
 
-.ai-insight-content ul {
-    padding-left: 1.2rem;
-    margin-bottom: 0.75rem;
-}
-
-.ai-insight-content li {
-    margin-bottom: 0.4rem;
-}
-
-.ai-insight-content p {
-    margin-bottom: 0.6rem;
-    line-height: 1.5;
-}
-</style>
-
-<!-- ==================== SCRIPTS ==================== -->
 <script>
-
 /* DQI Chart */
 let dqiData = [];
 try {
@@ -218,6 +772,11 @@ try {
 } catch {}
 
 if (document.getElementById('dqiTrendChart') && dqiData.length) {
+    const centerTextPlugin = {
+        id: 'centerTextPlugin',
+        afterDraw(chart) {}
+    };
+
     new Chart(dqiTrendChart.getContext('2d'), {
         type: 'line',
         data: {
@@ -226,12 +785,30 @@ if (document.getElementById('dqiTrendChart') && dqiData.length) {
                 label: 'DQI Score',
                 data: dqiData.map(d => d.dqi_score),
                 borderColor: '#2563eb',
-                backgroundColor: 'rgba(37,99,235,0.1)',
+                backgroundColor: 'rgba(37,99,235,0.12)',
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointBackgroundColor: '#2563eb',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
-        options: { scales: { y: { beginAtZero: true, max: 100 } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { font: { size: 11 } }
+                }
+            },
+            plugins: {
+                legend: { display: true, labels: { usePointStyle: true } }
+            }
+        }
     });
 }
 
@@ -259,7 +836,7 @@ document.getElementById('aiQueryForm').addEventListener('submit', e => {
     if (!q) return;
 
     aiAnswer.innerHTML =
-        '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Thinking...</div>';
+        '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> AI is thinking...</div>';
 
     fetch("{% url 'base:generate_ai_insight' site.id %}", {
         method: 'POST',
@@ -272,9 +849,13 @@ document.getElementById('aiQueryForm').addEventListener('submit', e => {
     .then(r => r.json())
     .then(d => {
         aiAnswer.innerHTML = `
-            <div class="alert alert-success ai-insight-content">
-                <strong>AI Response</strong><hr class="my-2">
-                ${d.content.replace(/\n/g,'<br>')}
+            <div class="ai-insight-box" style="border-left-color:#10b981;">
+                <div class="ai-insight-header" style="border-bottom:1px solid rgba(16,185,129,0.2); padding-bottom:0.6rem;">
+                    <span class="ai-insight-type" style="color:#10b981;">AI Response</span>
+                </div>
+                <div class="ai-insight-content" style="margin-top:0.8rem;">
+                    ${d.content.replace(/\n/g,'<br>')}
+                </div>
             </div>`;
         customQuery.value = '';
     });
