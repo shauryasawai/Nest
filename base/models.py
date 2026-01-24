@@ -342,6 +342,8 @@ class Alert(models.Model):
     is_resolved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.CharField(max_length=200, blank=True)
+    action_taken = models.TextField(blank=True)
     notified_users = models.TextField(blank=True)
     
     def __str__(self):

@@ -273,10 +273,10 @@
                 Study Visits Timeline
             </h5>
             <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary active" onclick="filterVisits('all')">All</button>
-                <button class="btn btn-outline-success" onclick="filterVisits('completed')">Completed</button>
-                <button class="btn btn-outline-warning" onclick="filterVisits('pending')">Pending</button>
-                <button class="btn btn-outline-danger" onclick="filterVisits('missing')">Missing</button>
+                <button class="btn btn-outline-primary active"onclick="filterVisits('all', this)">All</button>
+                <button class="btn btn-outline-success"onclick="filterVisits('completed', this)">Completed</button>
+                <button class="btn btn-outline-warning"onclick="filterVisits('pending', this)">Pending</button>
+                <button class="btn btn-outline-danger"onclick="filterVisits('missing', this)">Missing</button>
             </div>
         </div>
     </div>
@@ -533,63 +533,164 @@
 
 {% block extra_js %}
 <script>
-// Filter visits by status
-function filterVisits(status) {
+/* =========================
+   CSRF TOKEN (COOKIE-BASED)
+========================= */
+function getCSRFToken() {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith('csrftoken=')) {
+                cookieValue = decodeURIComponent(
+                    cookie.substring('csrftoken='.length)
+                );
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+/* =========================
+   VISIT FILTERING
+========================= */
+function filterVisits(status, btn = null) {
     const rows = document.querySelectorAll('.visit-row');
     const buttons = document.querySelectorAll('.btn-group .btn');
-    
-    buttons.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
+
+    buttons.forEach(button => button.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
     rows.forEach(row => {
-        if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        row.style.display =
+            status === 'all' || row.dataset.status === status
+                ? ''
+                : 'none';
     });
 }
 
-// View visit details
+/* =========================
+   VIEW VISIT DETAILS
+========================= */
 function viewVisitDetails(visitId) {
-    // Implement visit details modal or navigation
     console.log('View visit:', visitId);
     alert('Visit details modal would open here');
 }
 
-// Resolve query
+/* =========================
+   RESOLVE SINGLE QUERY
+========================= */
 function resolveQuery(queryId) {
-    if (confirm('Are you sure you want to mark this query as resolved?')) {
-        // Add AJAX call to resolve query
-        console.log('Resolving query:', queryId);
-        // Example: fetch(`/queries/${queryId}/resolve/`, {method: 'POST'})
-        alert('Query resolution functionality would be implemented here');
+    if (!confirm('Are you sure you want to mark this query as resolved?')) {
+        return;
     }
+
+    fetch(`/api/queries/${queryId}/resolve/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            response_text: 'Resolved by coordinator'
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Request failed');
+        return response.json();
+    })
+    .then(data => {
+        alert(data.message || 'Query resolved successfully');
+        location.reload();
+    })
+    .catch(() => {
+        alert('Failed to resolve query');
+    });
 }
 
-// Request lab data
+/* =========================
+   BULK RESOLVE QUERIES
+========================= */
+function resolveAllQueries(patientId) {
+    if (!confirm('Resolve all open queries for this patient?')) {
+        return;
+    }
+
+    fetch(`/api/patients/${patientId}/queries/resolve-all/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            response_text: 'Bulk resolution'
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Request failed');
+        return response.json();
+    })
+    .then(data => {
+        alert(data.message || 'All queries resolved');
+        location.reload();
+    })
+    .catch(() => {
+        alert('Failed to resolve queries');
+    });
+}
+
+/* =========================
+   REQUEST LAB DATA
+========================= */
 function requestLab(labId) {
-    if (confirm('Send a request for this missing lab data?')) {
-        // Add AJAX call to request lab
-        console.log('Requesting lab:', labId);
-        alert('Lab request functionality would be implemented here');
+    if (!confirm('Send a request for this missing lab data?')) {
+        return;
     }
+
+    fetch(`/api/lab-data/${labId}/request/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Request failed');
+        return response.json();
+    })
+    .then(data => {
+        alert(data.message || 'Lab data request sent successfully');
+        location.reload();
+    })
+    .catch(() => {
+        alert('Failed to request lab data');
+    });
 }
 
-// Export patient data
+/* =========================
+   EXPORT PATIENT DATA
+========================= */
 function exportPatientData() {
-    // Implement export functionality
-    console.log('Exporting patient data');
-    alert('Export functionality would be implemented here (PDF/CSV)');
+    alert('Export functionality (PDF / CSV) will be implemented here');
 }
 
-// Print optimization
-window.addEventListener('beforeprint', function() {
-    document.querySelectorAll('.btn-group').forEach(el => el.style.display = 'none');
+/* =========================
+   PRINT OPTIMIZATION
+========================= */
+window.addEventListener('beforeprint', () => {
+    document.querySelectorAll('.btn-group').forEach(el => {
+        el.style.display = 'none';
+    });
 });
 
-window.addEventListener('afterprint', function() {
-    document.querySelectorAll('.btn-group').forEach(el => el.style.display = '');
+window.addEventListener('afterprint', () => {
+    document.querySelectorAll('.btn-group').forEach(el => {
+        el.style.display = '';
+    });
 });
 </script>
 {% endblock %}

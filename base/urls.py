@@ -13,4 +13,15 @@ urlpatterns = [
     path('alerts/', views.alerts_view, name='alerts'),
     path('api/calculate-dqi/<int:site_id>/', views.calculate_dqi, name='calculate_dqi'),
     path('api/generate-insight/<int:site_id>/', views.generate_ai_insight, name='generate_ai_insight'),
+    path('api/alerts/<int:alert_id>/resolve/', views.resolve_alert, name='resolve_alert'),
+    path('api/alerts/<int:alert_id>/action/', views.alert_action, name='alert_action'),
+    path('api/alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
+    path('api/alerts/resolve-all/', views.resolve_all_alerts, name='resolve_all_alerts'),
+    path('api/alerts/delete-resolved/', views.delete_resolved_alerts, name='delete_resolved_alerts'),
+
+    
+    path('api/queries/<int:query_id>/resolve/', views.resolve_query, name='resolve_query'),
+    path('api/patients/<int:patient_id>/queries/resolve-all/', views.bulk_resolve_queries, name='bulk_resolve_queries'),
+    path('api/lab-data/<int:lab_id>/request/', views.request_lab_data, name='request_lab_data'),
+
 ]

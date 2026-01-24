@@ -4,7 +4,7 @@ from django.db.models import Count, Avg, Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from .models import Study, Site, Patient, Query, Alert, ExcelUpload, AIInsight, DQIHistory
+from .models import LabData, Study, Site, Patient, Query, Alert, ExcelUpload, AIInsight, DQIHistory
 from .forms import ExcelUploadForm, AIQueryForm
 from .utils.excel_parser import ExcelParser
 from .utils.dqi_calculator import DQICalculator
@@ -184,19 +184,51 @@ def patient_detail(request, patient_id):
     
     # Get all related data
     visits = patient.visits.all().order_by('visit_number')
-    queries = patient.queries.all().order_by('-opened_date')
-    lab_data = patient.lab_data.all().order_by('-collection_date')
-    coding_issues = patient.coding_issues.filter(is_resolved=False)
+    queries = patient.queries.filter(is_resolved=False).order_by('-opened_date')
+    lab_data = patient.lab_data.filter(is_missing=True).order_by('-collection_date')
+    
+    # Calculate metrics
+    total_queries = patient.queries.count()
+    resolved_queries = patient.queries.filter(is_resolved=True).count()
+    
+    # Query metrics
+    if queries.exists():
+        avg_days_open = queries.aggregate(Avg('days_open'))['days_open__avg'] or 0
+    else:
+        avg_days_open = 0
+    
+    # Visit metrics
+    completed_visits = visits.filter(is_completed=True).count()
+    missing_visits = visits.filter(is_missing=True).count()
+    total_visits = visits.count()
+    
+    visit_completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
+    
+    # Lab metrics
+    total_labs = patient.lab_data.count()
+    completed_labs = patient.lab_data.filter(is_missing=False).count()
+    lab_completion_rate = (completed_labs / total_labs * 100) if total_labs > 0 else 0
+    
+    # Query resolution rate
+    query_resolution_rate = (resolved_queries / total_queries * 100) if total_queries > 0 else 100
     
     # Update patient status
-    patient.update_status()
+    try:
+        patient.update_status()
+    except:
+        pass
     
     context = {
         'patient': patient,
         'visits': visits,
         'queries': queries,
         'lab_data': lab_data,
-        'coding_issues': coding_issues
+        'completed_visits': completed_visits,
+        'missing_visits': missing_visits,
+        'avg_days_open': round(avg_days_open, 1),
+        'visit_completion_rate': round(visit_completion_rate, 1),
+        'lab_completion_rate': round(lab_completion_rate, 1),
+        'query_resolution_rate': round(query_resolution_rate, 1),
     }
     
     return render(request, 'base/patient_detail.html', context)
@@ -308,3 +340,241 @@ def alerts_view(request):
     }
     
     return render(request, 'base/alerts.html', context)
+
+from django.utils import timezone
+
+@require_http_methods(["POST"])
+def resolve_alert(request, alert_id):
+    """Resolve a single alert"""
+    try:
+        alert = get_object_or_404(Alert, id=alert_id)
+        alert.is_resolved = True
+        alert.resolved_at = timezone.now()
+        alert.resolved_by = request.user.username if request.user.is_authenticated else 'System'
+        alert.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Alert resolved successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["POST"])
+def alert_action(request, alert_id):
+    """Save action taken for an alert"""
+    try:
+        alert = get_object_or_404(Alert, id=alert_id)
+        action_taken = request.POST.get('action_taken', '')
+        
+        if not action_taken:
+            return JsonResponse({
+                'success': False,
+                'message': 'Action description is required'
+            }, status=400)
+        
+        alert.action_taken = action_taken
+        alert.is_resolved = True
+        alert.resolved_at = timezone.now()
+        alert.resolved_by = request.user.username if request.user.is_authenticated else 'System'
+        alert.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Action saved and alert resolved'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["DELETE"])
+def delete_alert(request, alert_id):
+    """Delete a single alert"""
+    try:
+        alert = get_object_or_404(Alert, id=alert_id)
+        alert.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Alert deleted successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["POST"])
+def resolve_all_alerts(request):
+    """Resolve all active alerts"""
+    try:
+        count = Alert.objects.filter(is_resolved=False).update(
+            is_resolved=True,
+            resolved_at=timezone.now(),
+            resolved_by=request.user.username if request.user.is_authenticated else 'System'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'count': count,
+            'message': f'{count} alerts resolved'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["DELETE"])
+def delete_resolved_alerts(request):
+    """Delete all resolved alerts"""
+    try:
+        count, _ = Alert.objects.filter(is_resolved=True).delete()
+        
+        return JsonResponse({
+            'success': True,
+            'count': count,
+            'message': f'{count} resolved alerts deleted'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+    
+
+@require_http_methods(["POST"])
+def resolve_query(request, query_id):
+    """Resolve a data query"""
+    try:
+        query = get_object_or_404(Query, id=query_id)
+        
+        # Get resolution details from request
+        response_text = request.POST.get('response_text', '')
+        
+        # Update query
+        query.is_resolved = True
+        query.resolved_date = timezone.now().date()
+        query.response_text = response_text
+        query.days_open = (query.resolved_date - query.opened_date).days
+        query.save()
+        
+        # Update patient status after resolving query
+        query.patient.update_status()
+        
+        # Recalculate site DQI
+        try:
+            from .utils.dqi_calculator import DQICalculator
+            calculator = DQICalculator(query.patient.site)
+            calculator.calculate()
+        except:
+            pass  # DQI calculation optional
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Query resolved successfully',
+            'days_open': query.days_open
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["POST"])
+def request_lab_data(request, lab_id):
+    """Request missing lab data"""
+    try:
+        lab = get_object_or_404(LabData, id=lab_id)
+        
+        # Create an alert for missing lab data
+        alert = Alert.objects.create(
+            site=lab.patient.site,
+            patient=lab.patient,
+            alert_type='missing_lab',
+            severity='high',
+            message=f'Lab data request: {lab.test_name} ({lab.lab_name}) for Patient {lab.patient.patient_id}',
+            is_resolved=False
+        )
+        
+        # Mark lab as requested (you might want to add these fields to your model)
+        # For now, we'll just create the alert
+        
+        # Optional: Send email notification to site coordinator
+        try:
+            site = lab.patient.site
+            if site.coordinator_email:
+                # Add email sending logic here
+                # send_mail(
+                #     subject=f'Missing Lab Data Request - Patient {lab.patient.patient_id}',
+                #     message=f'Please provide {lab.test_name} for patient {lab.patient.patient_id}',
+                #     from_email='noreply@nest.com',
+                #     recipient_list=[site.coordinator_email],
+                # )
+                pass
+        except:
+            pass
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Lab data request sent for {lab.test_name}',
+            'alert_id': alert.id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@require_http_methods(["POST"])
+def bulk_resolve_queries(request, patient_id):
+    """Resolve all queries for a patient"""
+    try:
+        patient = get_object_or_404(Patient, id=patient_id)
+        response_text = request.POST.get('response_text', 'Bulk resolution')
+        current_date = timezone.now().date()
+        
+        # Get all unresolved queries
+        queries = Query.objects.filter(patient=patient, is_resolved=False)
+        count = queries.count()
+        
+        # Update each query
+        for query in queries:
+            query.is_resolved = True
+            query.resolved_date = current_date
+            query.response_text = response_text
+            query.days_open = (current_date - query.opened_date).days
+            query.save()
+        
+        # Update patient status
+        patient.update_status()
+        
+        # Recalculate site DQI
+        try:
+            from .utils.dqi_calculator import DQICalculator
+            calculator = DQICalculator(patient.site)
+            calculator.calculate()
+        except:
+            pass
+        
+        return JsonResponse({
+            'success': True,
+            'count': count,
+            'message': f'{count} queries resolved successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
