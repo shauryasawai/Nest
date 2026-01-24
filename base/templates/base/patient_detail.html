@@ -2,517 +2,594 @@
 
 {% block title %}Patient {{ patient.patient_id }} - NEST 2.0{% endblock %}
 
-{% block extra_css %}
-<style>
-    .patient-shell {
-        padding: 0;
-        min-height: calc(100vh - 80px);
-        background: radial-gradient(circle at top left, rgba(255,255,255,0.6), transparent 55%),
-                    radial-gradient(circle at bottom right, rgba(56,189,248,0.18), transparent 55%),
-                    #0f172a;
-    }
-
-    .patient-card {
-        padding: 1.8rem 2rem 2.3rem;
-        background: radial-gradient(circle at top left, rgba(255,255,255,0.9), rgba(248,250,252,0.98));
-        box-shadow: 0 24px 48px rgba(15,23,42,0.4);
-        border-radius: 0;
-    }
-
-    /* Header */
-
-    .patient-header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 1.2rem;
-        align-items: center;
-        margin-bottom: 1.8rem;
-    }
-
-    .patient-title h1 {
-        font-size: 1.75rem;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        color: #0f172a;
-        margin-bottom: 0.25rem;
-    }
-
-    .patient-title p {
-        margin: 0;
-        font-size: 0.9rem;
-        color: #64748b;
-    }
-
-    .patient-title a {
-        color: #2563eb;
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .patient-title a:hover {
-        text-decoration: underline;
-    }
-
-    .patient-status-pill {
-        padding: 0.5rem 1.1rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        box-shadow: 0 10px 24px rgba(15,23,42,0.3);
-    }
-
-    /* Summary metrics */
-
-    .patient-metric-card {
-        border-radius: 18px;
-        padding: 1rem 1.15rem;
-        color: #0f172a;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(148,163,184,0.35);
-        box-shadow: 0 14px 28px rgba(15,23,42,0.22);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.7rem;
-    }
-
-    .patient-metric-card::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at top right, rgba(255,255,255,0.6), transparent 55%);
-        opacity: 0.9;
-        pointer-events: none;
-    }
-
-    .patient-metric-main {
-        position: relative;
-        z-index: 1;
-    }
-
-    .patient-metric-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        opacity: 0.85;
-        font-weight: 600;
-        margin-bottom: 0.15rem;
-    }
-
-    .patient-metric-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        line-height: 1.1;
-    }
-
-    .patient-metric-sub {
-        font-size: 0.8rem;
-        opacity: 0.9;
-        margin-top: 0.1rem;
-    }
-
-    .patient-metric-icon {
-        position: relative;
-        z-index: 1;
-        width: 42px;
-        height: 42px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(15,23,42,0.08);
-        box-shadow: 0 10px 22px rgba(15,23,42,0.28);
-        color: #0f172a;
-    }
-
-    .patient-metric-icon i {
-        font-size: 1.2rem;
-    }
-
-    .metric-total-issues {
-        background: linear-gradient(135deg, #fee2e2 0%, #fb7185 40%, #ef4444 100%);
-    }
-
-    .metric-open-queries {
-        background: linear-gradient(135deg, #ffedd5 0%, #fb923c 40%, #f59e0b 100%);
-    }
-
-    .metric-visits {
-        background: linear-gradient(135deg, #dbeafe 0%, #60a5fa 40%, #4f46e5 100%);
-    }
-
-    .metric-labs {
-        background: linear-gradient(135deg, #e0f2fe 0%, #22c55e 40%, #0ea5e9 100%);
-    }
-
-    /* Section cards */
-
-    .patient-section-card {
-        border-radius: 20px;
-        border: 1px solid rgba(148,163,184,0.3);
-        box-shadow: 0 18px 40px rgba(15,23,42,0.22);
-        overflow: hidden;
-        background: linear-gradient(135deg, #ffffff, #f9fafb);
-        margin-bottom: 1.4rem;
-    }
-
-    .patient-section-card .card-header {
-        border-bottom: 1px solid rgba(226,232,240,0.95);
-        padding: 0.8rem 1.15rem;
-        background: linear-gradient(135deg, rgba(239,246,255,0.96), rgba(248,250,252,0.98));
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-    }
-
-    .patient-section-card .card-header h5 {
-        margin: 0;
-        font-size: 0.96rem;
-        font-weight: 700;
-        color: #111827;
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-    }
-
-    .patient-section-card .card-body {
-        padding: 1rem 1.15rem 1.1rem;
-    }
-
-    .patient-section-card .card-header i {
-        font-size: 1.05rem;
-    }
-
-    .section-badge {
-        margin-left: auto;
-        font-size: 0.7rem;
-        padding: 0.2rem 0.6rem;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        background: rgba(37,99,235,0.08);
-        color: #2563eb;
-        font-weight: 600;
-    }
-
-    .table.patient-table {
-        margin-bottom: 0;
-        font-size: 0.85rem;
-    }
-
-    .patient-table thead tr {
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .patient-table th {
-        border: none;
-        color: #6b7280;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-size: 0.7rem;
-    }
-
-    .patient-table td {
-        border: none;
-        padding-top: 0.55rem;
-        padding-bottom: 0.55rem;
-        vertical-align: middle;
-    }
-
-    .patient-table tbody tr:nth-child(odd) {
-        background-color: #f9fafb;
-    }
-
-    .patient-table tbody tr:hover {
-        background-color: #eff6ff;
-    }
-
-    .badge-soft {
-        border-radius: 999px;
-        font-weight: 600;
-        font-size: 0.75rem;
-        padding: 0.25rem 0.6rem;
-    }
-
-    .badge-soft-success {
-        background: rgba(16,185,129,0.12);
-        color: #0f766e;
-    }
-
-    .badge-soft-danger {
-        background: rgba(239,68,68,0.12);
-        color: #b91c1c;
-    }
-
-    .badge-soft-warning {
-        background: rgba(245,158,11,0.15);
-        color: #92400e;
-    }
-
-    .badge-soft-secondary {
-        background: rgba(148,163,184,0.2);
-        color: #111827;
-    }
-
-    @media (max-width: 991.98px) {
-        .patient-card {
-            padding: 1.4rem 1.1rem 1.8rem;
-        }
-        .patient-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .patient-metric-card {
-            margin-bottom: 0.9rem;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="patient-shell">
-    <div class="patient-card">
-        <!-- Header -->
-        <div class="patient-header">
-            <div class="patient-title">
-                <h1>Patient {{ patient.patient_id }}</h1>
-                <p>
-                    Site:
-                    <a href="{% url 'base:site_detail' patient.site.id %}">
-                        {{ patient.site.site_number }}
+<!-- Page Header -->
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'base:dashboard' %}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'base:site_detail' patient.site.id %}">
+                    Site {{ patient.site.site_number }}
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Patient {{ patient.patient_id }}
+            </li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-start flex-wrap">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-user-injured me-2"></i>
+                Patient {{ patient.patient_id }}
+            </h1>
+            <p class="page-subtitle mb-0">
+                <span class="me-4">
+                    <i class="fas fa-hospital-alt me-1"></i>
+                    Site: <a href="{% url 'base:site_detail' patient.site.id %}" class="text-decoration-none">
+                        {{ patient.site.site_number }} - {{ patient.site.site_name }}
                     </a>
-                    &nbsp;|&nbsp;
-                    Enrollment:
-                    {{ patient.enrollment_date|default:"Not enrolled" }}
-                </p>
-            </div>
-            <div>
-                <!-- UPDATED: map status to visible Bootstrap colors -->
-                <span class="patient-status-pill badge
-                    {% if patient.status == 'clean' %}
-                        bg-success text-dark
-                    {% elif patient.status == 'minor' %}
-                        bg-warning text-dark
-                    {% elif patient.status == 'major' or patient.status == 'critical' %}
-                        bg-danger text-white
-                    {% else %}
-                        bg-secondary text-white
-                    {% endif %}
-                ">
+                </span>
+                <span class="me-4">
+                    <i class="fas fa-calendar-check me-1"></i>
+                    Enrolled: <strong>{{ patient.enrollment_date|date:"M d, Y"|default:"Not enrolled" }}</strong>
+                </span>
+                {% if patient.last_visit_date %}
+                <span>
+                    <i class="fas fa-clock me-1"></i>
+                    Last Visit: <strong>{{ patient.last_visit_date|date:"M d, Y" }}</strong>
+                </span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <div class="d-flex gap-2 align-items-center">
+                <span class="status-indicator status-{{ patient.status }}">
+                    <span class="status-dot"></span>
                     {{ patient.get_status_display }}
                 </span>
-            </div>
-        </div>
-
-        <!-- Issues Summary -->
-        <div class="row mb-3">
-            <div class="col-md-3 mb-3 mb-md-0">
-                <div class="patient-metric-card metric-total-issues">
-                    <div class="patient-metric-main">
-                        <div class="patient-metric-label">Total Issues</div>
-                        <div class="patient-metric-value">{{ patient.issues_count }}</div>
-                        <div class="patient-metric-sub">All data-quality findings</div>
-                    </div>
-                    <div class="patient-metric-icon">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3 mb-md-0">
-                <div class="patient-metric-card metric-open-queries">
-                    <div class="patient-metric-main">
-                        <div class="patient-metric-label">Open Queries</div>
-                        <div class="patient-metric-value">{{ queries|length }}</div>
-                        <div class="patient-metric-sub">Awaiting site response</div>
-                    </div>
-                    <div class="patient-metric-icon">
-                        <i class="fas fa-question-circle"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3 mb-md-0">
-                <div class="patient-metric-card metric-visits">
-                    <div class="patient-metric-main">
-                        <div class="patient-metric-label">Visits</div>
-                        <div class="patient-metric-value">{{ visits|length }}</div>
-                        <div class="patient-metric-sub">Scheduled & completed</div>
-                    </div>
-                    <div class="patient-metric-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="patient-metric-card metric-labs">
-                    <div class="patient-metric-main">
-                        <div class="patient-metric-label">Missing Labs</div>
-                        <div class="patient-metric-value">{{ lab_data|length }}</div>
-                        <div class="patient-metric-sub">Outstanding lab records</div>
-                    </div>
-                    <div class="patient-metric-icon">
-                        <i class="fas fa-flask"></i>
-                    </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i> Print Report
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="exportPatientData()">
+                        <i class="fas fa-download me-1"></i> Export
+                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- Visits -->
-        <div class="card patient-section-card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-calendar-alt text-primary"></i>
-                    Visit Progress
-                </h5>
-                <span class="section-badge">Timeline overview</span>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table patient-table">
-                        <thead>
-                            <tr>
-                                <th>Visit</th>
-                                <th>Visit Name</th>
-                                <th>Scheduled</th>
-                                <th>Actual</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for visit in visits %}
-                            <tr>
-                                <td>{{ visit.visit_number }}</td>
-                                <td>{{ visit.visit_name }}</td>
-                                <td>{{ visit.scheduled_date|default:"N/A" }}</td>
-                                <td>{{ visit.actual_date|default:"N/A" }}</td>
-                                <td>
-                                    {% if visit.is_completed %}
-                                    <span class="badge-soft badge-soft-success">Completed</span>
-                                    {% elif visit.is_missing %}
-                                    <span class="badge-soft badge-soft-danger">Missing</span>
-                                    {% else %}
-                                    <span class="badge-soft badge-soft-warning">Pending</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-muted text-center">
-                                    No visits found for this patient.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Queries -->
-        <div class="card patient-section-card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-question-circle text-warning"></i>
-                    Data Queries
-                </h5>
-                <span class="section-badge">Open & resolved</span>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table patient-table">
-                        <thead>
-                            <tr>
-                                <th>Query ID</th>
-                                <th>Type</th>
-                                <th>Severity</th>
-                                <th>Text</th>
-                                <th>Days Open</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for query in queries %}
-                            <tr>
-                                <td>{{ query.query_id }}</td>
-                                <td>
-                                    <span class="badge-soft badge-soft-secondary">
-                                        {{ query.get_query_type_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge-soft badge-soft-{{ query.severity }}">
-                                        {{ query.severity|upper }}
-                                    </span>
-                                </td>
-                                <td>{{ query.query_text|truncatewords:10 }}</td>
-                                <td>{{ query.days_open }}</td>
-                                <td>
-                                    {% if query.is_resolved %}
-                                    <span class="badge-soft badge-soft-success">Resolved</span>
-                                    {% else %}
-                                    <span class="badge-soft badge-soft-warning">Open</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-muted text-center">
-                                    No queries for this patient.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lab Data -->
-        {% if lab_data %}
-        <div class="card patient-section-card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-flask text-info"></i>
-                    Missing Lab Data
-                </h5>
-                <span class="section-badge">Lab completeness</span>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table patient-table">
-                        <thead>
-                            <tr>
-                                <th>Lab Name</th>
-                                <th>Test Name</th>
-                                <th>Collection Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for lab in lab_data %}
-                            <tr>
-                                <td>{{ lab.lab_name }}</td>
-                                <td>{{ lab.test_name }}</td>
-                                <td>{{ lab.collection_date|default:"N/A" }}</td>
-                                <td>
-                                    {% if lab.is_missing %}
-                                    <span class="badge-soft badge-soft-danger">Missing</span>
-                                    {% else %}
-                                    <span class="badge-soft badge-soft-success">Complete</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
 </div>
+
+<!-- Key Metrics Overview -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: {% if patient.issues_count > 5 %}#dc3545{% elif patient.issues_count > 0 %}#ffc107{% else %}#198754{% endif %};">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Total Data Issues
+                </div>
+                <div class="metric-value" style="color: {% if patient.issues_count > 5 %}#dc3545{% elif patient.issues_count > 0 %}#ffc107{% else %}#198754{% endif %};">
+                    {{ patient.issues_count }}
+                </div>
+                <div class="mt-2">
+                    {% if patient.issues_count > 0 %}
+                    <span class="badge bg-danger">Requires attention</span>
+                    {% else %}
+                    <span class="badge bg-success">Clean record</span>
+                    {% endif %}
+                </div>
+                <i class="fas fa-exclamation-triangle metric-icon" style="color: {% if patient.issues_count > 0 %}#dc3545{% else %}#198754{% endif %};"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #ffc107;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-question-circle me-1"></i> Open Queries
+                </div>
+                <div class="metric-value" style="color: #ffc107;">
+                    {{ queries|length }}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        {% if queries %}
+                        Avg. {{ avg_days_open|default:0 }} days open
+                        {% else %}
+                        No open queries
+                        {% endif %}
+                    </small>
+                </div>
+                <i class="fas fa-question-circle metric-icon" style="color: #ffc107;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #0dcaf0;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-calendar-alt me-1"></i> Study Visits
+                </div>
+                <div class="metric-value" style="color: #0dcaf0;">
+                    {{ visits|length }}
+                </div>
+                <div class="mt-2">
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-success">{{ completed_visits|default:0 }} Done</span>
+                        <span class="badge bg-danger">{{ missing_visits|default:0 }} Missing</span>
+                    </div>
+                </div>
+                <i class="fas fa-calendar-alt metric-icon" style="color: #0dcaf0;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #0d6efd;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-flask me-1"></i> Missing Lab Tests
+                </div>
+                <div class="metric-value" style="color: #0d6efd;">
+                    {{ lab_data|length }}
+                </div>
+                <div class="mt-2">
+                    {% if lab_data %}
+                    <span class="badge bg-warning">Action required</span>
+                    {% else %}
+                    <span class="badge bg-success">All complete</span>
+                    {% endif %}
+                </div>
+                <i class="fas fa-flask metric-icon" style="color: #0d6efd;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Information Card -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-circle text-primary me-2"></i>
+                    Patient Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="p-3 rounded" style="background-color: var(--bg-secondary);">
+                            <small class="text-muted d-block mb-1">Patient ID</small>
+                            <strong class="fs-5">{{ patient.patient_id }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">Enrollment Date</small>
+                        <strong>{{ patient.enrollment_date|date:"M d, Y"|default:"N/A" }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">Study Status</small>
+                        <strong>{{ patient.get_status_display }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">Site Number</small>
+                        <strong>{{ patient.site.site_number }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">Study ID</small>
+                        <strong>{{ patient.site.study.study_id|default:"N/A" }}</strong>
+                    </div>
+                    {% if patient.screening_date %}
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">Screening Date</small>
+                        <strong>{{ patient.screening_date|date:"M d, Y" }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if patient.randomization_date %}
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">Randomization</small>
+                        <strong>{{ patient.randomization_date|date:"M d, Y" }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    Data Completeness Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Visit Completion Rate</span>
+                        <span class="badge bg-primary">{{ visit_completion_rate|default:0 }}%</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ visit_completion_rate|default:0 }}%;" 
+                             aria-valuenow="{{ visit_completion_rate|default:0 }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ visit_completion_rate|default:0 }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Lab Data Completion</span>
+                        <span class="badge bg-primary">{{ lab_completion_rate|default:0 }}%</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {{ lab_completion_rate|default:0 }}%;" 
+                             aria-valuenow="{{ lab_completion_rate|default:0 }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ lab_completion_rate|default:0 }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Query Resolution Rate</span>
+                        <span class="badge bg-primary">{{ query_resolution_rate|default:0 }}%</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {{ query_resolution_rate|default:0 }}%;" 
+                             aria-valuenow="{{ query_resolution_rate|default:0 }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ query_resolution_rate|default:0 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Study Visits Table -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-check text-primary me-2"></i>
+                Study Visits Timeline
+            </h5>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-primary active" onclick="filterVisits('all')">All</button>
+                <button class="btn btn-outline-success" onclick="filterVisits('completed')">Completed</button>
+                <button class="btn btn-outline-warning" onclick="filterVisits('pending')">Pending</button>
+                <button class="btn btn-outline-danger" onclick="filterVisits('missing')">Missing</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="visitsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Visit #</th>
+                        <th>Visit Name</th>
+                        <th>Scheduled Date</th>
+                        <th>Actual Date</th>
+                        <th>Window</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visit in visits %}
+                    <tr class="visit-row" data-status="{% if visit.is_completed %}completed{% elif visit.is_missing %}missing{% else %}pending{% endif %}">
+                        <td class="fw-bold text-primary">{{ visit.visit_number }}</td>
+                        <td>
+                            <strong>{{ visit.visit_name }}</strong>
+                            {% if visit.visit_type %}
+                            <br><small class="text-muted">{{ visit.visit_type }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if visit.scheduled_date %}
+                            <i class="fas fa-calendar me-1"></i>{{ visit.scheduled_date|date:"M d, Y" }}
+                            {% else %}
+                            <span class="text-muted">Not scheduled</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if visit.actual_date %}
+                            <i class="fas fa-calendar-check me-1 text-success"></i>{{ visit.actual_date|date:"M d, Y" }}
+                            {% else %}
+                            <span class="text-muted">Not completed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if visit.window_deviation %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-clock me-1"></i>{{ visit.window_deviation }} days
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">On time</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if visit.is_completed %}
+                            <span class="status-indicator status-clean">
+                                <span class="status-dot"></span>
+                                Completed
+                            </span>
+                            {% elif visit.is_missing %}
+                            <span class="status-indicator status-critical">
+                                <span class="status-dot"></span>
+                                Missing
+                            </span>
+                            {% else %}
+                            <span class="status-indicator status-minor">
+                                <span class="status-dot"></span>
+                                Pending
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewVisitDetails({{ visit.id }})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No visit data available
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Open Queries Table -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-question-circle text-warning me-2"></i>
+                Open Data Queries
+            </h5>
+            <span class="badge bg-warning">{{ queries|length }} Active</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Query ID</th>
+                        <th>Type</th>
+                        <th>Severity</th>
+                        <th>Description</th>
+                        <th>Days Open</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for query in queries %}
+                    <tr>
+                        <td class="fw-bold">#{{ query.query_id }}</td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-tag me-1"></i>{{ query.get_query_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if query.severity == 'critical' %}danger{% elif query.severity == 'high' %}warning{% elif query.severity == 'medium' %}info{% else %}secondary{% endif %}">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ query.severity|upper }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 400px;" title="{{ query.query_text }}">
+                                {{ query.query_text }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if query.days_open > 7 %}
+                            <span class="badge bg-danger">{{ query.days_open }} days</span>
+                            {% elif query.days_open > 3 %}
+                            <span class="badge bg-warning">{{ query.days_open }} days</span>
+                            {% else %}
+                            <span class="badge bg-info">{{ query.days_open }} days</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if query.is_resolved %}
+                            <span class="status-indicator status-clean">
+                                <span class="status-dot"></span>
+                                Resolved
+                            </span>
+                            {% else %}
+                            <span class="status-indicator status-major">
+                                <span class="status-dot"></span>
+                                Open
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-success" onclick="resolveQuery({{ query.id }});">
+                                <i class="fas fa-check me-1"></i> Resolve
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="text-muted mb-0">No open queries for this patient</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Missing Lab Data -->
+{% if lab_data %}
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-flask text-info me-2"></i>
+                Missing Laboratory Data
+            </h5>
+            <span class="badge bg-danger">{{ lab_data|length }} Missing</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Lab Test Name</th>
+                        <th>Test Category</th>
+                        <th>Expected Collection Date</th>
+                        <th>Days Overdue</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lab in lab_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ lab.test_name }}</strong>
+                            {% if lab.lab_name %}
+                            <br><small class="text-muted">{{ lab.lab_name }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ lab.test_category|default:"General" }}</span>
+                        </td>
+                        <td>
+                            {% if lab.collection_date %}
+                            <i class="fas fa-calendar me-1"></i>{{ lab.collection_date|date:"M d, Y" }}
+                            {% else %}
+                            <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if lab.days_overdue %}
+                            <span class="badge bg-danger">{{ lab.days_overdue }} days</span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if lab.is_missing %}
+                            <span class="status-indicator status-critical">
+                                <span class="status-dot"></span>
+                                Missing
+                            </span>
+                            {% else %}
+                            <span class="status-indicator status-clean">
+                                <span class="status-dot"></span>
+                                Complete
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="requestLab({{ lab.id }})">
+                                <i class="fas fa-paper-plane me-1"></i> Request
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filter visits by status
+function filterVisits(status) {
+    const rows = document.querySelectorAll('.visit-row');
+    const buttons = document.querySelectorAll('.btn-group .btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// View visit details
+function viewVisitDetails(visitId) {
+    // Implement visit details modal or navigation
+    console.log('View visit:', visitId);
+    alert('Visit details modal would open here');
+}
+
+// Resolve query
+function resolveQuery(queryId) {
+    if (confirm('Are you sure you want to mark this query as resolved?')) {
+        // Add AJAX call to resolve query
+        console.log('Resolving query:', queryId);
+        // Example: fetch(`/queries/${queryId}/resolve/`, {method: 'POST'})
+        alert('Query resolution functionality would be implemented here');
+    }
+}
+
+// Request lab data
+function requestLab(labId) {
+    if (confirm('Send a request for this missing lab data?')) {
+        // Add AJAX call to request lab
+        console.log('Requesting lab:', labId);
+        alert('Lab request functionality would be implemented here');
+    }
+}
+
+// Export patient data
+function exportPatientData() {
+    // Implement export functionality
+    console.log('Exporting patient data');
+    alert('Export functionality would be implemented here (PDF/CSV)');
+}
+
+// Print optimization
+window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('.btn-group').forEach(el => el.style.display = 'none');
+});
+
+window.addEventListener('afterprint', function() {
+    document.querySelectorAll('.btn-group').forEach(el => el.style.display = '');
+});
+</script>
 {% endblock %}

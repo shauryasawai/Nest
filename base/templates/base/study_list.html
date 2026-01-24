@@ -1,557 +1,280 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Studies - NEST 2.0{% endblock %}
-
-{% block extra_css %}
-<style>
-    .studies-shell {
-        padding: 0;
-        min-height: calc(100vh - 80px);
-        background: radial-gradient(circle at top left, rgba(255,255,255,0.65), transparent 55%),
-                    radial-gradient(circle at bottom right, rgba(59,130,246,0.15), transparent 55%),
-                    #0f172a;
-    }
-
-    .studies-card {
-        padding: 0;
-        border-radius: 0;
-        background: radial-gradient(circle at top left, rgba(255,255,255,0.95), rgba(248,250,252,0.99));
-        box-shadow: none;
-    }
-
-    /* Header */
-    .studies-header {
-        padding: 2.2rem 2rem;
-        border-bottom: 2px solid rgba(226,232,240,0.9);
-        background: linear-gradient(135deg, rgba(239,246,255,0.95), rgba(248,250,252,0.98));
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 2rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .studies-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(37,99,235,0.08), transparent 70%);
-        border-radius: 50%;
-        z-index: 0;
-    }
-
-    .studies-header::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -5%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(79,70,229,0.06), transparent 70%);
-        border-radius: 50%;
-        z-index: 0;
-    }
-
-    .studies-header-content {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        position: relative;
-        z-index: 1;
-        flex: 1;
-    }
-
-    .studies-header-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        color: #4f46e5;
-        box-shadow: 0 12px 28px rgba(79,70,229,0.25);
-    }
-
-    .studies-header-text h1 {
-        font-size: 2.1rem;
-        font-weight: 800;
-        letter-spacing: 0.01em;
-        color: #0f172a;
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    .studies-header-text p {
-        margin: 0.3rem 0 0;
-        font-size: 0.95rem;
-        color: #6b7280;
-        font-weight: 500;
-    }
-
-    .studies-stats-container {
-        display: flex;
-        gap: 1rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .stat-card {
-        padding: 1rem 1.4rem;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #ffffff, #f9fafb);
-        border: 1.5px solid rgba(226,232,240,0.9);
-        box-shadow: 0 10px 28px rgba(15,23,42,0.15);
-        text-align: center;
-        min-width: 140px;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #4f46e5, #7c3aed);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 16px 36px rgba(79,70,229,0.25);
-        border-color: #4f46e5;
-    }
-
-    .stat-card strong {
-        display: block;
-        font-size: 2rem;
-        font-weight: 800;
-        color: #0f172a;
-        line-height: 1.1;
-    }
-
-    .stat-card span {
-        display: block;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #6b7280;
-        font-weight: 700;
-        margin-top: 0.4rem;
-    }
-
-    /* Content */
-    .studies-content {
-        padding: 2rem;
-    }
-
-    /* Search Filter */
-    .search-filter-card {
-        border-radius: 20px;
-        border: 1px solid rgba(148,163,184,0.3);
-        box-shadow: 0 18px 40px rgba(15,23,42,0.22);
-        overflow: hidden;
-        background: linear-gradient(135deg, #ffffff, #f9fafb);
-        margin-bottom: 1.6rem;
-        padding: 1.2rem;
-    }
-
-    .search-filter-card input {
-        border-radius: 12px;
-        border: 1px solid rgba(148,163,184,0.4);
-        padding: 0.8rem 1.1rem;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-    }
-
-    .search-filter-card input:focus {
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
-        outline: none;
-    }
-
-    /* Studies Grid */
-    .studies-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 1.8rem;
-        margin-bottom: 2rem;
-    }
-
-    /* Study Card */
-    .study-card {
-        border-radius: 20px;
-        border: 1px solid rgba(148,163,184,0.3);
-        box-shadow: 0 12px 32px rgba(15,23,42,0.18);
-        overflow: hidden;
-        background: linear-gradient(135deg, #ffffff, #f9fafb);
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-
-    .study-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #4f46e5, #7c3aed);
-        z-index: 1;
-    }
-
-    .study-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 50px rgba(79,70,229,0.28);
-        border-color: #4f46e5;
-    }
-
-    .study-card-header {
-        padding: 1.6rem;
-        background: linear-gradient(135deg, rgba(239,246,255,0.6), rgba(248,250,252,0.8));
-        border-bottom: 1px solid rgba(226,232,240,0.6);
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .study-card-info h4 {
-        font-size: 1.25rem;
-        font-weight: 800;
-        color: #0f172a;
-        margin: 0 0 0.3rem 0;
-        letter-spacing: 0.01em;
-    }
-
-    .study-card-info h6 {
-        font-size: 0.9rem;
-        color: #6b7280;
-        font-weight: 500;
-        margin: 0;
-    }
-
-    .study-status-badge {
-        padding: 0.4rem 0.9rem;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
-        color: #4f46e5;
-        box-shadow: 0 6px 14px rgba(79,70,229,0.25);
-        white-space: nowrap;
-    }
-
-    .study-card-body {
-        padding: 1.6rem;
-    }
-
-    .study-detail-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1.2rem;
-    }
-
-    .study-detail-item {
-        padding: 0.9rem;
-        border-radius: 12px;
-        background: rgba(79,70,229,0.04);
-        border: 1px solid rgba(79,70,229,0.1);
-    }
-
-    .study-detail-item p {
-        margin: 0;
-        font-size: 0.85rem;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 700;
-    }
-
-    .study-detail-item strong {
-        display: block;
-        font-size: 1.4rem;
-        color: #0f172a;
-        font-weight: 800;
-        margin-top: 0.3rem;
-    }
-
-    .study-detail-item i {
-        font-size: 0.9rem;
-        color: #4f46e5;
-        margin-right: 0.3rem;
-    }
-
-    .study-actions {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1.4rem;
-    }
-
-    .btn-action {
-        flex: 1;
-        padding: 0.7rem 1rem;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-action.btn-primary {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
-        color: #fff;
-        box-shadow: 0 8px 18px rgba(79,70,229,0.35);
-    }
-
-    .btn-action.btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px rgba(79,70,229,0.45);
-    }
-
-    .btn-action.btn-secondary {
-        background: rgba(79,70,229,0.1);
-        color: #4f46e5;
-        border: 1.5px solid rgba(79,70,229,0.3);
-    }
-
-    .btn-action.btn-secondary:hover {
-        background: rgba(79,70,229,0.15);
-        border-color: #4f46e5;
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: #6b7280;
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        color: #d1d5db;
-        margin-bottom: 1rem;
-    }
-
-    .empty-state h3 {
-        font-size: 1.3rem;
-        color: #374151;
-        margin-bottom: 0.5rem;
-    }
-
-    @media (max-width: 1199.98px) {
-        .studies-grid {
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-    }
-
-    @media (max-width: 767.98px) {
-        .studies-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .studies-header-content {
-            width: 100%;
-        }
-        .studies-stats-container {
-            width: 100%;
-            justify-content: space-between;
-        }
-        .studies-content {
-            padding: 1.2rem 1rem 1.6rem;
-        }
-        .studies-grid {
-            grid-template-columns: 1fr;
-        }
-        .study-detail-row {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-{% endblock %}
+{% block title %}Clinical Studies - NEST 2.0{% endblock %}
 
 {% block content %}
-<div class="studies-shell">
-    <div class="studies-card">
-        <!-- Header -->
-        <div class="studies-header">
-            <div class="studies-header-content">
-                <div class="studies-header-icon">
-                    <i class="fas fa-flask"></i>
-                </div>
-                <div class="studies-header-text">
-                    <h1>All Studies</h1>
-                    <p>Manage clinical research studies and trials</p>
-                </div>
-            </div>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'base:dashboard' %}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Clinical Studies
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="page-title">Clinical Studies Overview</h1>
+            <p class="page-subtitle">
+                <i class="fas fa-flask"></i> Comprehensive view of all active clinical research studies
+                <span class="ms-3 text-muted">
+                    <small>{{ studies|length }} Active Studies</small>
+                </span>
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudyModal">
+                <i class="fas fa-plus me-2"></i>Add New Study
+            </button>
+        </div>
+    </div>
+</div>
 
-            <!-- Stats Container -->
-            <div class="studies-stats-container">
-                <div class="stat-card">
-                    <strong>{{ studies|length }}</strong>
-                    <span>Total Studies</span>
+<!-- Quick Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #0d6efd;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-flask me-1"></i> Total Studies
                 </div>
-                <!-- <div class="stat-card">
-                    <strong id="totalSites">0</strong>
-                    <span>Total Sites</span>
-                </div> -->
+                <div class="metric-value">{{ studies|length|default:0 }}</div>
+                <div class="mt-2">
+                    <small class="text-muted">Active research programs</small>
+                </div>
+                <i class="fas fa-flask metric-icon" style="color: #0d6efd;"></i>
             </div>
         </div>
-
-        <!-- Content -->
-        <div class="studies-content">
-            <!-- Studies Grid -->
-            <div class="studies-grid" id="studiesGrid">
-                {% for study in studies %}
-                <div class="study-card" data-study-name="{{ study.study_name|lower }}" data-study-id="{{ study.study_id|lower }}">
-                    <div class="study-card-header">
-                        <div class="study-card-info">
-                            <h4>{{ study.study_id }}</h4>
-                            <h6>{{ study.study_name }}</h6>
-                        </div>
-                        <span class="study-status-badge">
-                            <i class="fas fa-flask-vial"></i>
-                            {{ study.get_phase_display }}
-                        </span>
-                    </div>
-
-                    <div class="study-card-body">
-                        <div class="study-detail-row">
-                            <div class="study-detail-item">
-                                <p><i class="fas fa-file-alt"></i> Protocol</p>
-                                <strong>{{ study.protocol_number }}</strong>
-                            </div>
-                            <div class="study-detail-item">
-                                <p><i class="fas fa-hospital"></i> Sites</p>
-                                <strong>{{ study.site_count }}</strong>
-                            </div>
-                        </div>
-
-                        <div class="study-detail-row">
-                            <div class="study-detail-item">
-                                <p><i class="fas fa-users"></i> Patients</p>
-                                <strong>{{ study.patient_count }}</strong>
-                            </div>
-                            <div class="study-detail-item">
-                                <p><i class="fas fa-calendar-alt"></i> Status</p>
-                                <strong style="font-size: 1rem;">
-                                    {% if study.status == 'active' %}
-                                        <span style="color: #22c55e;">Active</span>
-                                    {% elif study.status == 'completed' %}
-                                        <span style="color: #3b82f6;">Completed</span>
-                                    {% else %}
-                                        <span style="color: #f59e0b;">Planning</span>
-                                    {% endif %}
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="study-actions">
-                            <a href="{% url 'base:dashboard' %}?study={{ study.id }}" class="btn-action btn-primary">
-                                <i class="fas fa-chart-line"></i> Dashboard
-                            </a>
-                            <a href="{% url 'base:site_list' %}?study={{ study.id }}" class="btn-action btn-secondary">
-                                <i class="fas fa-hospital"></i> Sites
-                            </a>
-                        </div>
-                    </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #198754;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-hospital-alt me-1"></i> Total Research Sites
                 </div>
-                {% empty %}
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <i class="fas fa-inbox"></i>
-                    <h3>No Studies Found</h3>
-                    <p>There are currently no studies to display.</p>
+                <div class="metric-value" style="color: #198754;">
+                    {{ total_sites|default:0 }}
                 </div>
-                {% endfor %}
+                <div class="mt-2">
+                    <small class="text-muted">Across all studies</small>
+                </div>
+                <i class="fas fa-hospital-alt metric-icon" style="color: #198754;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #0dcaf0;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-users me-1"></i> Total Enrolled Patients
+                </div>
+                <div class="metric-value" style="color: #0dcaf0;">
+                    {{ total_patients|default:0 }}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">Active participants</small>
+                </div>
+                <i class="fas fa-users metric-icon" style="color: #0dcaf0;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card metric-card" style="border-left-color: #6f42c1;">
+            <div class="card-body position-relative">
+                <div class="metric-label">
+                    <i class="fas fa-vials me-1"></i> Study Phases
+                </div>
+                <div class="metric-value" style="color: #6f42c1;">
+                    {{ unique_phases|default:0 }}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">Different phases</small>
+                </div>
+                <i class="fas fa-vials metric-icon" style="color: #6f42c1;"></i>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Studies Grid -->
+<div class="row g-4 mb-4">
+    {% for study in studies %}
+    <div class="col-lg-6">
+        <div class="card h-100 study-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="fas fa-flask text-primary me-2"></i>
+                            {{ study.study_id }}
+                        </h5>
+                        <p class="text-muted mb-0">{{ study.study_name }}</p>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary">
+                        Phase {{ study.get_phase_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Protocol Information -->
+                <div class="mb-3 p-3 rounded" style="background-color: rgba(13, 110, 253, 0.05);">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-file-medical text-primary me-2 mt-1"></i>
+                                <div>
+                                    <small class="text-muted d-block">Protocol Number</small>
+                                    <strong>{{ study.protocol_number }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-calendar-alt text-primary me-2 mt-1"></i>
+                                <div>
+                                    <small class="text-muted d-block">Study Phase</small>
+                                    <strong>{{ study.get_phase_display }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <div class="text-center p-3 rounded" style="background-color: rgba(25, 135, 84, 0.1);">
+                            <div class="fw-bold text-success" style="font-size: 1.5rem;">
+                                {{ study.site_count|default:0 }}
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-hospital me-1"></i>Research Sites
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3 rounded" style="background-color: rgba(13, 202, 240, 0.1);">
+                            <div class="fw-bold" style="color: #0dcaf0; font-size: 1.5rem;">
+                                {{ study.patient_count|default:0 }}
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-users me-1"></i>Enrolled Patients
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Description (if available) -->
+                {% if study.description %}
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {{ study.description|truncatewords:25 }}
+                    </small>
+                </div>
+                {% endif %}
+
+                <!-- Status Indicator -->
+                <div class="mb-3">
+                    <span class="status-indicator status-clean">
+                        <span class="status-dot"></span>
+                        ACTIVE
+                    </span>
+                </div>
+            </div>
+
+            <!-- Card Footer with Actions -->
+            <div class="card-footer bg-transparent">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'base:dashboard' %}?study={{ study.id }}" 
+                       class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="fas fa-chart-line me-1"></i> View Dashboard
+                    </a>
+                    <a href="{% url 'base:site_list' %}?study={{ study.id }}" 
+                       class="btn btn-outline-primary btn-sm flex-grow-1">
+                        <i class="fas fa-hospital me-1"></i> View Sites
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-edit me-2"></i>Edit Study
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-file-export me-2"></i>Export Data
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#">
+                                <i class="fas fa-archive me-2"></i>Archive Study
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Studies Available</h4>
+                <p class="text-muted mb-4">Get started by adding your first clinical study</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudyModal">
+                    <i class="fas fa-plus me-2"></i>Add New Study
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
-// Calculate total sites
-document.addEventListener('DOMContentLoaded', () => {
-    let totalSites = 0;
-    document.querySelectorAll('.study-card').forEach(card => {
-        const siteCount = parseInt(card.querySelector('[data-site-count]')?.textContent || 0);
-        // Alternative: get from the sites detail item
-        const sites = parseInt(card.innerHTML.match(/(\d+)(?=<\/strong>\s*<\/div>\s*<\/div>\s*<div class="study-detail-row">/)?.[1] || 0);
-        totalSites += sites;
+// Add any study-specific JavaScript here
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips if needed
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
-
-// Search functionality
-document.getElementById('studySearch').addEventListener('keyup', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const cards = document.querySelectorAll('.study-card');
-    let visibleCards = 0;
-
-    cards.forEach(card => {
-        const studyName = card.getAttribute('data-study-name');
-        const studyId = card.getAttribute('data-study-id');
-        
-        const matches = studyName.includes(searchTerm) || studyId.includes(searchTerm);
-        
-        if (matches || searchTerm === '') {
-            card.style.display = '';
-            card.style.animation = 'fadeIn 0.3s ease';
-            visibleCards++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-
-    // Show empty state if no results
-    const grid = document.getElementById('studiesGrid');
-    const emptyState = grid.querySelector('.empty-state');
-    
-    if (visibleCards === 0 && !emptyState) {
-        const noResults = document.createElement('div');
-        noResults.className = 'empty-state';
-        noResults.style.gridColumn = '1 / -1';
-        noResults.innerHTML = `
-            <i class="fas fa-search"></i>
-            <h3>No Studies Found</h3>
-            <p>No studies match your search for "<strong>${searchTerm}</strong>"</p>
-        `;
-        grid.appendChild(noResults);
-    } else if (visibleCards > 0 && emptyState) {
-        emptyState.remove();
-    }
-});
-
-// Add fade-in animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-`;
-document.head.appendChild(style);
 </script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.study-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.study-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+}
+
+.study-card .card-header {
+    background-color: rgba(13, 110, 253, 0.03);
+    border-bottom: 2px solid rgba(13, 110, 253, 0.1);
+}
+</style>
 {% endblock %}

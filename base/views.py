@@ -47,7 +47,7 @@ def dashboard(request):
     # Top performing sites
     top_sites = Site.objects.filter(
         study__in=studies,
-        dqi_score__gte=75
+        dqi_score__gte=63
     ).order_by('-dqi_score')[:5]
     
     context = {
@@ -72,12 +72,20 @@ def dashboard(request):
 def study_list(request):
     """List all studies"""
     studies = Study.objects.all().annotate(
-        site_count=Count('sites'),
-        patient_count=Count('sites__patients')
+        site_count=Count('sites', distinct=True),
+        patient_count=Count('sites__patients', distinct=True)
     )
     
+    # Calculate aggregated totals
+    total_sites = Site.objects.count()
+    total_patients = Patient.objects.count()
+    unique_phases = studies.values('phase').distinct().count()
+    
     context = {
-        'studies': studies
+        'studies': studies,
+        'total_sites': total_sites,
+        'total_patients': total_patients,
+        'unique_phases': unique_phases,
     }
     
     return render(request, 'base/study_list.html', context)
