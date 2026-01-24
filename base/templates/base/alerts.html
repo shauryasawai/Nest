@@ -8,94 +8,477 @@
 
 {% block extra_css %}
 <style>
-    .alert-card {
-        border-left: 4px solid;
-        transition: transform 0.2s, box-shadow 0.2s;
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --warning-gradient: linear-gradient(135deg, #fad0c4 0%, #ff9a9e 100%);
+        --success-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        --info-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        --hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     }
-    
-    .alert-card:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    .main-content {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f8fafc 100%);
+        min-height: 100vh;
+        padding: 2rem;
     }
-    
-    .alert-critical { border-left-color: #ef4444; }
-    .alert-high { border-left-color: #f97316; }
-    .alert-medium { border-left-color: #f59e0b; }
-    .alert-low { border-left-color: #3b82f6; }
-    
-    .severity-badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        text-transform: uppercase;
+
+    /* Modern Page Header */
+    .page-header {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.82));
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        margin-bottom: 2rem;
+        animation: slideDown 0.5s ease-out;
     }
-    
-    .filter-chip {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        margin: 0.25rem;
-        border-radius: 20px;
-        background: #f3f4f6;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 2px solid transparent;
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-16px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
-    .filter-chip:hover {
-        background: #e5e7eb;
+
+    .page-header h1 {
+        font-size: 2.4rem;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
     }
-    
-    .filter-chip.active {
-        background: #3b82f6;
+
+    .page-header h1 i {
+        -webkit-text-fill-color: #f59e0b;
+        animation: bellRing 1.8s ease-in-out infinite;
+    }
+
+    @keyframes bellRing {
+        0%, 100% { transform: rotate(0deg); }
+        15%, 35% { transform: rotate(-8deg); }
+        25%, 45% { transform: rotate(8deg); }
+    }
+
+    .refresh-btn {
+        background: var(--primary-gradient);
+        border: none;
         color: white;
-        border-color: #2563eb;
+        padding: 0.8rem 1.6rem;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
     }
-    
+
+    .refresh-btn:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.55);
+    }
+
+    .refresh-btn i { transition: transform 0.35s ease; }
+    .refresh-btn:hover i { transform: rotate(180deg); }
+
+    /* Stats Cards */
     .stats-card {
-        background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-light) 100%);
-        border-left: 4px solid var(--border-color);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0.88));
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.18s ease-out;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.4s ease-out backwards;
     }
-    
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: var(--gradient-color);
+        transform: scaleX(0);
+        transition: transform 0.18s ease-out;
+    }
+
+    .stats-card:hover::before { transform: scaleX(1); }
+
+    .stats-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .stats-card h2 {
+        font-size: 2.35rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .stats-card i { transition: transform 0.18s ease-out; }
+    .stats-card:hover i { transform: scale(1.08) rotate(6deg); }
+
+    .stats-card:nth-child(1) { --gradient-color: var(--danger-gradient); animation-delay: 0.05s; }
+    .stats-card:nth-child(2) { --gradient-color: var(--warning-gradient); animation-delay: 0.1s; }
+    .stats-card:nth-child(3) { --gradient-color: linear-gradient(135deg, #f6d365 0%, #fda085 100%); animation-delay: 0.15s; }
+    .stats-card:nth-child(4) { --gradient-color: var(--info-gradient); animation-delay: 0.2s; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88));
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 1.75rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        margin-bottom: 1.5rem;
+    }
+
+    .form-select, .form-control {
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        padding: 0.8rem 1rem;
+        padding-right: 2.5rem;
+        font-weight: 600;
+        transition: all 0.12s ease;
+        background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") no-repeat right 0.75rem center;
+        background-size: 16px 12px;
+        color: #111;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .form-select::-ms-expand {
+        display: none;
+    }
+
+    option { 
+        background: #fff; 
+        color: #111; 
+        padding: 0.5rem;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+        transform: translateY(-1px);
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #4b5563;
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Filter Chips */
+    .filter-chips-container {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.93), rgba(255, 255, 255, 0.82));
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1.4rem;
+        margin: 0.25rem;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #ffffff, #f5f6fb);
+        cursor: pointer;
+        transition: all 0.18s ease-out;
+        border: 2px solid transparent;
+        font-weight: 700;
+        font-size: 0.92rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        user-select: none;
+    }
+
+    .filter-chip:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .filter-chip.active {
+        background: var(--primary-gradient);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
+    }
+
+    /* Alert Cards */
+    .alert-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.86));
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.82);
+        border-radius: 20px;
+        transition: all 0.2s ease-out;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    .alert-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 6px;
+        background: var(--border-gradient);
+        transition: width 0.18s ease-out;
+    }
+
+    .alert-card:hover::before { width: 10px; }
+    .alert-card:hover {
+        transform: translateX(8px) translateY(-4px);
+        box-shadow: var(--hover-shadow);
+        border-color: rgba(255, 255, 255, 1);
+    }
+
+    .alert-critical { --border-gradient: var(--danger-gradient); }
+    .alert-high { --border-gradient: var(--warning-gradient); }
+    .alert-medium { --border-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+    .alert-low { --border-gradient: var(--info-gradient); }
+
+    .severity-badge {
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0.45rem 1.05rem;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+    }
+
+    .bg-danger { background: var(--danger-gradient) !important; }
+    .bg-warning { background: var(--warning-gradient) !important; color: #6b4000 !important; }
+    .bg-primary { background: var(--primary-gradient) !important; }
+    .bg-success { background: var(--success-gradient) !important; }
+    .bg-secondary { background: linear-gradient(135deg, #a8a8a8, #6b6b6b) !important; }
+    .bg-info { background: var(--info-gradient) !important; }
+
+    /* Timeline */
     .timeline-item {
         position: relative;
-        padding-left: 2rem;
-        padding-bottom: 1.5rem;
+        padding-left: 3rem;
+        padding-bottom: 2rem;
+        animation: fadeInLeft 0.35s ease-out backwards;
     }
-    
+
+    .timeline-item:nth-child(n) { animation-delay: calc(0.05s * var(--item-index, 1)); }
+
     .timeline-item::before {
         content: '';
         position: absolute;
         left: 0;
         top: 0;
-        width: 12px;
-        height: 12px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: var(--dot-color);
-        border: 2px solid white;
-        box-shadow: 0 0 0 2px var(--dot-color);
+        border: 3px solid white;
+        box-shadow: 0 0 0 4px var(--dot-color), 0 4px 15px rgba(0, 0, 0, 0.2);
+        animation: dotPulse 2s ease-in-out infinite;
     }
-    
+
+    @keyframes dotPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.12); }
+    }
+
     .timeline-item::after {
         content: '';
         position: absolute;
-        left: 5px;
-        top: 12px;
+        left: 7px;
+        top: 20px;
         width: 2px;
-        height: calc(100% - 12px);
-        background: #e5e7eb;
+        height: calc(100% - 20px);
+        background: linear-gradient(180deg, var(--dot-color) 0%, rgba(229, 231, 235, 0.5) 100%);
     }
-    
-    .timeline-item:last-child::after {
-        display: none;
+
+    .timeline-item:last-child::after { display: none; }
+
+    @keyframes fadeInLeft {
+        from { opacity: 0; transform: translateX(-16px); }
+        to { opacity: 1; transform: translateX(0); }
     }
-    
+
+    /* Buttons */
     .action-button {
-        transition: all 0.2s;
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 700;
+        transition: all 0.18s ease-out;
+        border: 2px solid transparent;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
     }
-    
+
+    .action-button::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 0; height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.28);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s, height 0.4s;
+    }
+
+    .action-button:hover::before { width: 220px; height: 220px; }
     .action-button:hover {
-        transform: scale(1.05);
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border: none; }
+    .btn-primary { background: var(--primary-gradient); border: none; }
+    .btn-outline-primary { border-color: #667eea; color: #667eea; background: transparent; }
+    .btn-outline-primary:hover { background: var(--primary-gradient); border-color: transparent; color: white; }
+    .btn-outline-danger { border-color: #f5576c; color: #f5576c; background: transparent; }
+    .btn-outline-danger:hover { background: var(--danger-gradient); border-color: transparent; color: white; }
+
+    /* Card */
+    .card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12));
+        border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+        padding: 1.4rem;
+        border-radius: 20px 20px 0 0 !important;
+    }
+
+    .card-body { padding: 2rem; }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 700;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Pagination */
+    .pagination { gap: 0.5rem; }
+
+    .page-item .page-link {
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        color: #667eea;
+        font-weight: 700;
+        padding: 0.75rem 1.25rem;
+        transition: all 0.18s ease-out;
+        margin: 0 0.25rem;
+    }
+
+    .page-item .page-link:hover {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+    }
+
+    /* Alerts */
+    .alert { border-radius: 16px; border: none; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    .alert-info { background: linear-gradient(135deg, rgba(161, 196, 253, 0.25), rgba(194, 233, 251, 0.25)); border-left: 4px solid #3b82f6; }
+
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-state i { animation: bounceIn 1s ease-out; }
+
+    @keyframes bounceIn {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Modal */
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .modal-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        padding: 1.4rem;
+        border: none;
+    }
+
+    .modal-body { padding: 1.8rem; }
+    .modal-footer { border: none; padding: 1.4rem 1.8rem; }
+
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .modal.show .modal-backdrop {
+        opacity: 0.4 !important;
+    }
+
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+    }
+
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: var(--primary-gradient); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
+
+    @media (max-width: 768px) {
+        .main-content { padding: 1rem; }
+        .page-header h1 { font-size: 1.8rem; }
+        .stats-card { margin-bottom: 1rem; }
+        .timeline-item { padding-left: 2rem; }
     }
 </style>
 {% endblock %}
@@ -103,176 +486,128 @@
 {% block content %}
 <div class="main-content">
     <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="mb-2">
-                        <i class="fas fa-bell text-warning"></i> Alert Management
-                    </h1>
-                    <p class="text-muted mb-0">Monitor and manage system-generated alerts for data quality issues</p>
-                </div>
-                <div>
-                    <button class="btn btn-outline-primary" onclick="refreshAlerts()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1>
+                    <i class="fas fa-bell"></i> Alert Management
+                </h1>
+                <p class="text-muted mb-0 mt-2">Monitor and manage system-generated alerts for data quality issues</p>
+            </div>
+            <div>
+                <button class="refresh-btn" onclick="refreshAlerts()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Alert Statistics -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card" style="--bg-color: #fee2e2; --bg-light: #fef2f2; --border-color: #ef4444;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-muted mb-1">Critical Alerts</h6>
-                            <h2 class="mb-0 text-danger">{{ critical_count }}</h2>
-                        </div>
-                        <i class="fas fa-exclamation-circle fa-3x text-danger opacity-25"></i>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted mb-2" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">Critical Alerts</h6>
+                        <h2 class="text-danger">{{ critical_count }}</h2>
                     </div>
+                    <i class="fas fa-exclamation-circle fa-3x text-danger opacity-50"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card stats-card" style="--bg-color: #fed7aa; --bg-light: #ffedd5; --border-color: #f97316;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-muted mb-1">High Priority</h6>
-                            <h2 class="mb-0 text-warning">{{ high_count }}</h2>
-                        </div>
-                        <i class="fas fa-exclamation-triangle fa-3x text-warning opacity-25"></i>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted mb-2" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">High Priority</h6>
+                        <h2 class="text-warning">{{ high_count }}</h2>
                     </div>
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning opacity-50"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card stats-card" style="--bg-color: #fef3c7; --bg-light: #fefce8; --border-color: #f59e0b;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-muted mb-1">Medium Priority</h6>
-                            <h2 class="mb-0" style="color: #f59e0b;">{{ medium_count }}</h2>
-                        </div>
-                        <i class="fas fa-info-circle fa-3x opacity-25" style="color: #f59e0b;"></i>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted mb-2" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">Medium Priority</h6>
+                        <h2 style="color: #f59e0b;">{{ medium_count }}</h2>
                     </div>
+                    <i class="fas fa-info-circle fa-3x opacity-50" style="color: #f59e0b;"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card stats-card" style="--bg-color: #dbeafe; --bg-light: #eff6ff; --border-color: #3b82f6;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase text-muted mb-1">Total Active</h6>
-                            <h2 class="mb-0 text-primary">
-                                {% if status_filter == 'resolved' %}
-                                    {{ total_count }}
-                                {% else %}
-                                    {{ page_obj.paginator.count }}
-                                {% endif %}
-                            </h2>
-                        </div>
-                        <i class="fas fa-bell fa-3x text-primary opacity-25"></i>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted mb-2" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">Total Active</h6>
+                        <h2 class="text-primary">
+                            {% if status_filter == 'resolved' %}
+                                {{ total_count }}
+                            {% else %}
+                                {{ page_obj.paginator.count }}
+                            {% endif %}
+                        </h2>
                     </div>
+                    <i class="fas fa-bell fa-3x text-primary opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" id="filterForm" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Severity Level</label>
-                    <select name="severity" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Severities</option>
-                        <option value="critical" {% if selected_severity == 'critical' %}selected{% endif %}>
-                            Critical
-                        </option>
-                        <option value="high" {% if selected_severity == 'high' %}selected{% endif %}>
-                            High
-                        </option>
-                        <option value="medium" {% if selected_severity == 'medium' %}selected{% endif %}>
-                            Medium
-                        </option>
-                        <option value="low" {% if selected_severity == 'low' %}selected{% endif %}>
-                            Low
-                        </option>
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Status</label>
-                    <select name="status" class="form-select" onchange="this.form.submit()">
-                        <option value="">Active Only</option>
-                        <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>
-                            Resolved
-                        </option>
-                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>
-                            All Alerts
-                        </option>
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Alert Type</label>
-                    <select name="alert_type" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Types</option>
-                        <option value="dqi_drop" {% if alert_type_filter == 'dqi_drop' %}selected{% endif %}>
-                            DQI Score Drop
-                        </option>
-                        <option value="query_age" {% if alert_type_filter == 'query_age' %}selected{% endif %}>
-                            Old Queries
-                        </option>
-                        <option value="missing_visits" {% if alert_type_filter == 'missing_visits' %}selected{% endif %}>
-                            Missing Visits
-                        </option>
-                        <option value="site_capacity" {% if alert_type_filter == 'site_capacity' %}selected{% endif %}>
-                            Site Capacity
-                        </option>
-                    </select>
-                </div>
-                
-                <div class="col-md-3 d-flex align-items-end">
-                    <a href="{% url 'base:alerts' %}" class="btn btn-outline-secondary w-100">
-                        <i class="fas fa-redo"></i> Reset Filters
-                    </a>
-                </div>
-            </form>
-        </div>
+    <div class="filter-section">
+        <form method="get" id="filterForm" class="row g-3" onchange="applyFiltersAjax(event)">
+            <div class="col-md-3">
+                <label class="form-label">Severity Level</label>
+                <select name="severity" class="form-select" id="severityFilter">
+                    <option value="">All Severities</option>
+                    <option value="critical" {% if selected_severity == 'critical' %}selected{% endif %}>Critical</option>
+                    <option value="high" {% if selected_severity == 'high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if selected_severity == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if selected_severity == 'low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" id="statusFilter">
+                    <option value="">Active Only</option>
+                    <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Alerts</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Alert Type</label>
+                <select name="alert_type" class="form-select" id="alertTypeFilter">
+                    <option value="">All Types</option>
+                    <option value="dqi_drop" {% if alert_type_filter == 'dqi_drop' %}selected{% endif %}>DQI Score Drop</option>
+                    <option value="query_age" {% if alert_type_filter == 'query_age' %}selected{% endif %}>Old Queries</option>
+                    <option value="missing_visits" {% if alert_type_filter == 'missing_visits' %}selected{% endif %}>Missing Visits</option>
+                    <option value="site_capacity" {% if alert_type_filter == 'site_capacity' %}selected{% endif %}>Site Capacity</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="#"
+                   class="btn btn-outline-secondary w-100 action-button"
+                   onclick="resetFilters(event)">
+                    <i class="fas fa-redo"></i> Reset Filters
+                </a>
+            </div>
+        </form>
     </div>
 
     <!-- Quick Filter Chips -->
-    <div class="mb-4">
+    <div class="filter-chips-container">
         <div class="d-flex flex-wrap">
-            <span class="filter-chip {% if not selected_severity %}active{% endif %}" 
-                  onclick="filterBySeverity('')">
-                All Alerts
-            </span>
-            <span class="filter-chip {% if selected_severity == 'critical' %}active{% endif %}" 
-                  onclick="filterBySeverity('critical')">
-                🔴 Critical
-            </span>
-            <span class="filter-chip {% if selected_severity == 'high' %}active{% endif %}" 
-                  onclick="filterBySeverity('high')">
-                🟠 High
-            </span>
-            <span class="filter-chip {% if selected_severity == 'medium' %}active{% endif %}" 
-                  onclick="filterBySeverity('medium')">
-                🟡 Medium
-            </span>
-            <span class="filter-chip {% if selected_severity == 'low' %}active{% endif %}" 
-                  onclick="filterBySeverity('low')">
-                🔵 Low
-            </span>
+            <span class="filter-chip {% if not selected_severity %}active{% endif %}" data-severity="all" onclick="filterBySeverity('')">⚪ All Alerts</span>
+            <span class="filter-chip {% if selected_severity == 'critical' %}active{% endif %}" data-severity="critical" onclick="filterBySeverity('critical')">🔴 Critical</span>
+            <span class="filter-chip {% if selected_severity == 'high' %}active{% endif %}" data-severity="high" onclick="filterBySeverity('high')">🟠 High</span>
+            <span class="filter-chip {% if selected_severity == 'medium' %}active{% endif %}" data-severity="medium" onclick="filterBySeverity('medium')">🟡 Medium</span>
+            <span class="filter-chip {% if selected_severity == 'low' %}active{% endif %}" data-severity="low" onclick="filterBySeverity('low')">🔵 Low</span>
         </div>
     </div>
 
@@ -280,9 +615,9 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <h5 class="mb-0" style="font-weight: 700; font-size: 1.25rem;">
                             <i class="fas fa-list"></i> Alert Timeline
                             <span class="badge bg-secondary ms-2">
                                 {% if status_filter == 'resolved' %}
@@ -293,32 +628,31 @@
                             </span>
                         </h5>
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary" onclick="markAllAsRead()">
+                            <button class="btn btn-outline-primary action-button" onclick="markAllAsRead()">
                                 <i class="fas fa-check-double"></i> Mark All Read
                             </button>
-                            <button class="btn btn-outline-danger" onclick="deleteResolved()">
+                            <button class="btn btn-outline-danger action-button" onclick="deleteResolved()">
                                 <i class="fas fa-trash"></i> Delete Resolved
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="alertsContent">
                     {% if page_obj %}
                         <div class="timeline">
                             {% for alert in page_obj %}
-                            <div class="timeline-item" style="--dot-color: {% if alert.severity == 'critical' %}#ef4444{% elif alert.severity == 'high' %}#f97316{% elif alert.severity == 'medium' %}#f59e0b{% else %}#3b82f6{% endif %};">
-                                <div class="alert-card card mb-3 alert-{{ alert.severity }} {% if alert.is_resolved %}opacity-50{% endif %}">
+                            <div class="timeline-item" style="--dot-color: {% if alert.severity == 'critical' %}#ef4444{% elif alert.severity == 'high' %}#f97316{% elif alert.severity == 'medium' %}#f59e0b{% else %}#3b82f6{% endif %}; --item-index: {{ forloop.counter }};">
+                                <div class="alert-card card mb-4 alert-{{ alert.severity }} {% if alert.is_resolved %}opacity-75{% endif %}">
                                     <div class="card-body">
-                                        <!-- Alert Header -->
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-3">
                                             <div class="flex-grow-1">
-                                                <div class="d-flex align-items-center mb-2">
+                                                <div class="d-flex align-items-center mb-2 flex-wrap gap-2">
                                                     <span class="severity-badge 
                                                         {% if alert.severity == 'critical' %}bg-danger
                                                         {% elif alert.severity == 'high' %}bg-warning
                                                         {% elif alert.severity == 'medium' %}bg-warning text-dark
                                                         {% else %}bg-primary
-                                                        {% endif %} text-white me-2">
+                                                        {% endif %} text-white">
                                                         {{ alert.severity|title }}
                                                     </span>
                                                     <span class="badge bg-secondary">
@@ -330,53 +664,50 @@
                                                         {% endif %}
                                                     </span>
                                                     {% if alert.is_resolved %}
-                                                    <span class="badge bg-success ms-2">
+                                                    <span class="badge bg-success">
                                                         <i class="fas fa-check"></i> Resolved
                                                     </span>
                                                     {% endif %}
                                                 </div>
-                                                <h6 class="mb-0">
-                                                    <a href="{% url 'base:site_detail' alert.site.id %}" class="text-decoration-none">
+                                                <h6 class="mb-0" style="font-weight: 600; font-size: 1.1rem;">
+                                                    <a href="{% url 'base:site_detail' alert.site.id %}" class="text-decoration-none" style="color: #4b5563;">
                                                         <i class="fas fa-hospital"></i> Site {{ alert.site.site_number }} - {{ alert.site.site_name }}
                                                     </a>
                                                 </h6>
                                             </div>
                                             <div class="text-end">
-                                                <small class="text-muted d-block">
+                                                <small class="text-muted d-block" style="font-weight: 500;">
                                                     <i class="fas fa-clock"></i> {{ alert.created_at|timesince }} ago
                                                 </small>
                                                 {% if alert.is_resolved and alert.resolved_at %}
-                                                <small class="text-success d-block">
+                                                <small class="text-success d-block" style="font-weight: 600;">
                                                     <i class="fas fa-check-circle"></i> Resolved {{ alert.resolved_at|timesince }} ago
                                                 </small>
                                                 {% endif %}
                                             </div>
                                         </div>
 
-                                        <!-- Alert Message -->
-                                        <div class="alert-message mb-3">
-                                            <p class="mb-0">{{ alert.message }}</p>
+                                        <div class="alert-message mb-3" style="padding: 1rem; background: rgba(0, 0, 0, 0.02); border-radius: 12px;">
+                                            <p class="mb-0" style="font-weight: 500; color: #374151;">{{ alert.message }}</p>
                                         </div>
 
-                                        <!-- Alert Metadata -->
                                         <div class="row g-3 mb-3">
                                             <div class="col-md-6">
-                                                <small class="text-muted d-block">Site Information</small>
-                                                <div class="mt-1">
-                                                    <span class="badge bg-light text-dark">
+                                                <small class="text-muted d-block mb-2" style="font-weight: 600; text-transform: uppercase; font-size: 0.75rem;">Site Information</small>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <span class="badge bg-light text-dark" style="font-weight: 600;">
                                                         <i class="fas fa-globe"></i> {{ alert.site.country }}
                                                     </span>
-                                                    <span class="badge bg-light text-dark">
+                                                    <span class="badge bg-light text-dark" style="font-weight: 600;">
                                                         <i class="fas fa-user-md"></i> {{ alert.site.investigator_name }}
                                                     </span>
                                                 </div>
                                             </div>
                                             {% if alert.patient %}
                                             <div class="col-md-6">
-                                                <small class="text-muted d-block">Related Patient</small>
-                                                <div class="mt-1">
-                                                    <a href="{% url 'base:patient_detail' alert.patient.id %}" 
-                                                       class="badge bg-info text-white text-decoration-none">
+                                                <small class="text-muted d-block mb-2" style="font-weight: 600; text-transform: uppercase; font-size: 0.75rem;">Related Patient</small>
+                                                <div>
+                                                    <a href="{% url 'base:patient_detail' alert.patient.id %}" class="badge bg-info text-white text-decoration-none">
                                                         <i class="fas fa-user"></i> {{ alert.patient.patient_id }}
                                                     </a>
                                                 </div>
@@ -384,34 +715,29 @@
                                             {% endif %}
                                         </div>
 
-                                        <!-- Action Taken (if any) -->
                                         {% if alert.action_taken %}
                                         <div class="alert alert-info mb-3">
-                                            <strong><i class="fas fa-clipboard-check"></i> Action Taken:</strong>
-                                            <p class="mb-0 mt-2">{{ alert.action_taken }}</p>
+                                            <strong style="font-weight: 700;"><i class="fas fa-clipboard-check"></i> Action Taken:</strong>
+                                            <p class="mb-0 mt-2" style="font-weight: 500;">{{ alert.action_taken }}</p>
                                         </div>
                                         {% endif %}
 
-                                        <!-- Alert Actions -->
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-2 flex-wrap">
                                             {% if not alert.is_resolved %}
-                                            <button class="btn btn-sm btn-success action-button" 
-                                                    onclick="resolveAlert({{ alert.id }})">
+                                            <button class="btn btn-sm btn-success action-button" onclick="resolveAlert({{ alert.id }})">
                                                 <i class="fas fa-check"></i> Mark Resolved
                                             </button>
-                                            <button class="btn btn-sm btn-primary action-button"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#actionModal{{ alert.id }}">
+                                            <button class="btn btn-sm btn-primary action-button" type="button"
+                                                    data-bs-toggle="modal" data-bs-target="#actionModal"
+                                                    data-alert-id="{{ alert.id }}">
                                                 <i class="fas fa-pen"></i> Add Action
                                             </button>
                                             {% endif %}
-                                            <a href="{% url 'base:site_detail' alert.site.id %}" 
-                                               class="btn btn-sm btn-outline-primary action-button">
+                                            <a href="{% url 'base:site_detail' alert.site.id %}" class="btn btn-sm btn-outline-primary action-button">
                                                 <i class="fas fa-external-link-alt"></i> View Site
                                             </a>
                                             {% if alert.is_resolved %}
-                                            <button class="btn btn-sm btn-outline-danger action-button"
-                                                    onclick="deleteAlert({{ alert.id }})">
+                                            <button class="btn btn-sm btn-outline-danger action-button" onclick="deleteAlert({{ alert.id }})">
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
                                             {% endif %}
@@ -419,45 +745,10 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Action Modal -->
-                            <div class="modal fade" id="actionModal{{ alert.id }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Add Action Taken</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form id="actionForm{{ alert.id }}">
-                                                {% csrf_token %}
-                                                <div class="mb-3">
-                                                    <label class="form-label">Describe the action taken:</label>
-                                                    <textarea class="form-control" rows="4" name="action_taken" required></textarea>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="resolve" id="resolve{{ alert.id }}">
-                                                    <label class="form-check-label" for="resolve{{ alert.id }}">
-                                                        Mark this alert as resolved
-                                                    </label>
-                                                </div>
-                                            </form>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="button" class="btn btn-primary" 
-                                                    onclick="submitAction({{ alert.id }})">
-                                                Save Action
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             {% endfor %}
                         </div>
 
-                        <!-- Pagination -->
-                        <nav aria-label="Alert pagination" class="mt-4">
+                        <nav aria-label="Alert pagination" class="mt-5">
                             <ul class="pagination justify-content-center">
                                 {% if page_obj.has_previous %}
                                 <li class="page-item">
@@ -471,32 +762,24 @@
                                     </a>
                                 </li>
                                 {% endif %}
-                                
                                 <li class="page-item active">
-                                    <span class="page-link">
-                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                                    </span>
+                                    <span class="page-link" style="color: white;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
                                 </li>
-                                
                                 {% if page_obj.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_severity %}&severity={{ selected_severity }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if alert_type_filter %}&alert_type={{ alert_type_filter }}{% endif %}">
-                                        Next <i class="fas fa-angle-right"></i>
-                                    </a>
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_severity %}&severity={{ selected_severity }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if alert_type_filter %}&alert_type={{ alert_type_filter }}{% endif %}">Next <i class="fas fa-angle-right"></i></a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_severity %}&severity={{ selected_severity }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if alert_type_filter %}&alert_type={{ alert_type_filter }}{% endif %}">
-                                        Last <i class="fas fa-angle-double-right"></i>
-                                    </a>
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_severity %}&severity={{ selected_severity }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if alert_type_filter %}&alert_type={{ alert_type_filter }}{% endif %}">Last <i class="fas fa-angle-double-right"></i></a>
                                 </li>
                                 {% endif %}
                             </ul>
                         </nav>
                     {% else %}
-                        <div class="text-center py-5">
+                        <div class="empty-state">
                             <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
-                            <h4>No Alerts Found</h4>
-                            <p class="text-muted">All systems are running smoothly. No alerts to display.</p>
+                            <h4 style="font-weight: 700; color: #374151;">No Alerts Found</h4>
+                            <p class="text-muted" style="font-weight: 500;">All systems are running smoothly. No alerts to display.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -505,159 +788,292 @@
     </div>
 </div>
 
+<!-- Single modal placed OUTSIDE #alertsContent so AJAX reloads don't touch it -->
+<div class="modal fade" id="actionModal" tabindex="-1" role="dialog"
+     aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionModalLabel" style="font-weight: 700;">Add Action Taken</h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="actionForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600;">
+                            Describe the action taken:
+                        </label>
+                        <textarea class="form-control" id="actionTextarea" rows="4" name="action_taken" required
+                                  style="resize: none; border-radius: 12px; border: 2px solid #e5e7eb;
+                                         padding: 0.75rem; font-family: inherit; font-size: 1rem;"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="resolve" id="resolveCheckbox"
+                               style="cursor: pointer;">
+                        <label class="form-check-label" for="resolveCheckbox"
+                               style="font-weight: 500; cursor: pointer;">
+                            Mark this alert as resolved
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary action-button"
+                        data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary action-button"
+                        id="saveActionBtn">Save Action</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// Filter by severity using chips
+let currentAlertId = null;
+
+// Set up modal once (works even when alert list is reloaded by AJAX)
+document.addEventListener('DOMContentLoaded', function () {
+    const actionModal = document.getElementById('actionModal');
+    if (actionModal) {
+        actionModal.addEventListener('show.bs.modal', function (e) {
+            const button = e.relatedTarget;
+            currentAlertId = button ? button.getAttribute('data-alert-id') : null;
+            // focus textarea when modal opens
+            setTimeout(() => {
+                const ta = document.getElementById('actionTextarea');
+                if (ta) ta.focus();
+            }, 200);
+        });
+
+        actionModal.addEventListener('hidden.bs.modal', function () {
+            const ta = document.getElementById('actionTextarea');
+            const cb = document.getElementById('resolveCheckbox');
+            if (ta) ta.value = '';
+            if (cb) cb.checked = false;
+            currentAlertId = null;
+        });
+    }
+
+    setupSaveButton();
+});
+
+function setupSaveButton() {
+    const saveBtn = document.getElementById('saveActionBtn');
+    if (saveBtn) {
+        saveBtn.removeEventListener('click', handleSaveClick);
+        saveBtn.addEventListener('click', handleSaveClick);
+    }
+}
+
+function handleSaveClick() {
+    submitAction(currentAlertId);
+}
+
+function applyFiltersAjax(event) {
+    event.preventDefault();
+
+    const severity = document.getElementById('severityFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const alertType = document.getElementById('alertTypeFilter').value;
+
+    const params = new URLSearchParams();
+    if (severity) params.append('severity', severity);
+    if (status) params.append('status', status);
+    if (alertType) params.append('alert_type', alertType);
+
+    const url = `${window.location.pathname}?${params.toString()}`;
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => res.text())
+        .then(html => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#alertsContent');
+            if (newContent) {
+                const current = document.querySelector('#alertsContent');
+                current.innerHTML = newContent.innerHTML;
+            }
+            history.pushState({}, '', url);
+        })
+        .catch(err => console.error('Error:', err));
+}
+
+/* NEW: reset filters without full page reload */
+function resetFilters(event) {
+    if (event) event.preventDefault();
+
+    // clear dropdowns
+    const severitySelect = document.getElementById('severityFilter');
+    const statusSelect = document.getElementById('statusFilter');
+    const typeSelect = document.getElementById('alertTypeFilter');
+
+    if (severitySelect) severitySelect.value = '';
+    if (statusSelect) statusSelect.value = '';
+    if (typeSelect) typeSelect.value = '';
+
+    // set quick chips back to "All Alerts"
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.severity === 'all');
+    });
+
+    const url = window.location.pathname; // no query params
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => res.text())
+        .then(html => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#alertsContent');
+            if (newContent) {
+                const current = document.querySelector('#alertsContent');
+                current.innerHTML = newContent.innerHTML;
+            }
+            history.pushState({}, '', url);
+        })
+        .catch(err => console.error('Error:', err));
+}
+
 function filterBySeverity(severity) {
-    const url = new URL(window.location.href);
     const params = new URLSearchParams(window.location.search);
-    
     if (severity) {
         params.set('severity', severity);
     } else {
         params.delete('severity');
     }
-    params.delete('page'); // Remove page parameter when filtering
-    
-    url.search = params.toString();
-    window.location.href = url.toString();
+    params.delete('page');
+    const url = `${window.location.pathname}?${params.toString()}`;
+
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.severity === (severity || 'all'));
+    });
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => res.text())
+        .then(html => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#alertsContent');
+            if (newContent) {
+                const current = document.querySelector('#alertsContent');
+                current.innerHTML = newContent.innerHTML;
+            }
+            history.pushState({}, '', url);
+        })
+        .catch(() => { window.location.href = url; });
 }
 
-// Refresh alerts
-function refreshAlerts() {
-    window.location.reload();
+function refreshAlerts() { 
+    window.location.reload(); 
 }
 
-// Helper function to get CSRF token
 function getCSRFToken() {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
     return csrfToken ? csrfToken.value : '';
 }
 
-// Resolve alert
 function resolveAlert(alertId) {
     if (!confirm('Mark this alert as resolved?')) return;
-    
     fetch(`/api/alerts/${alertId}/resolve/`, {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': getCSRFToken(),
-            'Content-Type': 'application/json'
-        }
+        headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error resolving alert: ' + (data.message || 'Unknown error'));
-        }
+    .then(data => { 
+        if (data.success) { 
+            location.reload(); 
+        } else { 
+            alert('Error resolving alert: ' + (data.message || 'Unknown error')); 
+        } 
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error resolving alert');
-    });
+    .catch(error => { console.error('Error:', error); alert('Error resolving alert'); });
 }
 
-// Submit action
 function submitAction(alertId) {
-    const form = document.getElementById(`actionForm${alertId}`);
-    const formData = new FormData(form);
+    if (!alertId) {
+        alert('Alert ID not found');
+        return;
+    }
+    
+    const actionText = document.getElementById('actionTextarea').value.trim();
+    const resolve = document.getElementById('resolveCheckbox').checked;
+    
+    if (!actionText) {
+        alert('Please enter an action description');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action_taken', actionText);
+    formData.append('resolve', resolve);
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
     
     fetch(`/api/alerts/${alertId}/action/`, {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': getCSRFToken()
-        },
+        headers: { 'X-CSRFToken': getCSRFToken() },
         body: formData
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error saving action: ' + (data.message || 'Unknown error'));
-        }
+    .then(data => { 
+        if (data.success) { 
+            // Clear and close modal before reload
+            const modal = bootstrap.Modal.getInstance(document.getElementById('actionModal'));
+            if (modal) modal.hide();
+            location.reload(); 
+        } else { 
+            alert('Error saving action: ' + (data.message || 'Unknown error')); 
+        } 
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving action');
-    });
+    .catch(error => { console.error('Error:', error); alert('Error saving action'); });
 }
 
-// Delete alert
 function deleteAlert(alertId) {
     if (!confirm('Delete this alert permanently?')) return;
-    
     fetch(`/api/alerts/${alertId}/delete/`, {
         method: 'DELETE',
-        headers: {
-            'X-CSRFToken': getCSRFToken(),
-            'Content-Type': 'application/json'
-        }
+        headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error deleting alert: ' + (data.message || 'Unknown error'));
-        }
+    .then(data => { 
+        if (data.success) { 
+            location.reload(); 
+        } else { 
+            alert('Error deleting alert: ' + (data.message || 'Unknown error')); 
+        } 
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting alert');
-    });
+    .catch(error => { console.error('Error:', error); alert('Error deleting alert'); });
 }
 
-// Mark all as read
 function markAllAsRead() {
     if (!confirm('Mark all alerts as resolved?')) return;
-    
     fetch('/api/alerts/resolve-all/', {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': getCSRFToken(),
-            'Content-Type': 'application/json'
-        }
+        headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + (data.message || 'Unknown error'));
-        }
+    .then(data => { 
+        if (data.success) { 
+            location.reload(); 
+        } else { 
+            alert('Error: ' + (data.message || 'Unknown error')); 
+        } 
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error marking all as read');
-    });
+    .catch(error => { console.error('Error:', error); alert('Error marking all as read'); });
 }
 
-// Delete resolved alerts
 function deleteResolved() {
     if (!confirm('Delete all resolved alerts permanently?')) return;
-    
     fetch('/api/alerts/delete-resolved/', {
         method: 'DELETE',
-        headers: {
-            'X-CSRFToken': getCSRFToken(),
-            'Content-Type': 'application/json'
-        }
+        headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`Deleted ${data.count} resolved alerts`);
-            location.reload();
-        } else {
-            alert('Error: ' + (data.message || 'Unknown error'));
-        }
+    .then(data => { 
+        if (data.success) { 
+            alert(`Deleted ${data.count} resolved alerts`); 
+            location.reload(); 
+        } else { 
+            alert('Error: ' + (data.message || 'Unknown error')); 
+        } 
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting resolved alerts');
-    });
+    .catch(error => { console.error('Error:', error); alert('Error deleting resolved alerts'); });
 }
 </script>
 {% endblock %}

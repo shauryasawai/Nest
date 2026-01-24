@@ -2,178 +2,517 @@
 
 {% block title %}Patient {{ patient.patient_id }} - NEST 2.0{% endblock %}
 
+{% block extra_css %}
+<style>
+    .patient-shell {
+        padding: 0;
+        min-height: calc(100vh - 80px);
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.6), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(56,189,248,0.18), transparent 55%),
+                    #0f172a;
+    }
+
+    .patient-card {
+        padding: 1.8rem 2rem 2.3rem;
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.9), rgba(248,250,252,0.98));
+        box-shadow: 0 24px 48px rgba(15,23,42,0.4);
+        border-radius: 0;
+    }
+
+    /* Header */
+
+    .patient-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1.2rem;
+        align-items: center;
+        margin-bottom: 1.8rem;
+    }
+
+    .patient-title h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #0f172a;
+        margin-bottom: 0.25rem;
+    }
+
+    .patient-title p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .patient-title a {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .patient-title a:hover {
+        text-decoration: underline;
+    }
+
+    .patient-status-pill {
+        padding: 0.5rem 1.1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        box-shadow: 0 10px 24px rgba(15,23,42,0.3);
+    }
+
+    /* Summary metrics */
+
+    .patient-metric-card {
+        border-radius: 18px;
+        padding: 1rem 1.15rem;
+        color: #0f172a;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(148,163,184,0.35);
+        box-shadow: 0 14px 28px rgba(15,23,42,0.22);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+    .patient-metric-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(255,255,255,0.6), transparent 55%);
+        opacity: 0.9;
+        pointer-events: none;
+    }
+
+    .patient-metric-main {
+        position: relative;
+        z-index: 1;
+    }
+
+    .patient-metric-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        opacity: 0.85;
+        font-weight: 600;
+        margin-bottom: 0.15rem;
+    }
+
+    .patient-metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .patient-metric-sub {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        margin-top: 0.1rem;
+    }
+
+    .patient-metric-icon {
+        position: relative;
+        z-index: 1;
+        width: 42px;
+        height: 42px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15,23,42,0.08);
+        box-shadow: 0 10px 22px rgba(15,23,42,0.28);
+        color: #0f172a;
+    }
+
+    .patient-metric-icon i {
+        font-size: 1.2rem;
+    }
+
+    .metric-total-issues {
+        background: linear-gradient(135deg, #fee2e2 0%, #fb7185 40%, #ef4444 100%);
+    }
+
+    .metric-open-queries {
+        background: linear-gradient(135deg, #ffedd5 0%, #fb923c 40%, #f59e0b 100%);
+    }
+
+    .metric-visits {
+        background: linear-gradient(135deg, #dbeafe 0%, #60a5fa 40%, #4f46e5 100%);
+    }
+
+    .metric-labs {
+        background: linear-gradient(135deg, #e0f2fe 0%, #22c55e 40%, #0ea5e9 100%);
+    }
+
+    /* Section cards */
+
+    .patient-section-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148,163,184,0.3);
+        box-shadow: 0 18px 40px rgba(15,23,42,0.22);
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff, #f9fafb);
+        margin-bottom: 1.4rem;
+    }
+
+    .patient-section-card .card-header {
+        border-bottom: 1px solid rgba(226,232,240,0.95);
+        padding: 0.8rem 1.15rem;
+        background: linear-gradient(135deg, rgba(239,246,255,0.96), rgba(248,250,252,0.98));
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .patient-section-card .card-header h5 {
+        margin: 0;
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .patient-section-card .card-body {
+        padding: 1rem 1.15rem 1.1rem;
+    }
+
+    .patient-section-card .card-header i {
+        font-size: 1.05rem;
+    }
+
+    .section-badge {
+        margin-left: auto;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(37,99,235,0.08);
+        color: #2563eb;
+        font-weight: 600;
+    }
+
+    .table.patient-table {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+    }
+
+    .patient-table thead tr {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .patient-table th {
+        border: none;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+    }
+
+    .patient-table td {
+        border: none;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        vertical-align: middle;
+    }
+
+    .patient-table tbody tr:nth-child(odd) {
+        background-color: #f9fafb;
+    }
+
+    .patient-table tbody tr:hover {
+        background-color: #eff6ff;
+    }
+
+    .badge-soft {
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .badge-soft-success {
+        background: rgba(16,185,129,0.12);
+        color: #0f766e;
+    }
+
+    .badge-soft-danger {
+        background: rgba(239,68,68,0.12);
+        color: #b91c1c;
+    }
+
+    .badge-soft-warning {
+        background: rgba(245,158,11,0.15);
+        color: #92400e;
+    }
+
+    .badge-soft-secondary {
+        background: rgba(148,163,184,0.2);
+        color: #111827;
+    }
+
+    @media (max-width: 991.98px) {
+        .patient-card {
+            padding: 1.4rem 1.1rem 1.8rem;
+        }
+        .patient-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .patient-metric-card {
+            margin-bottom: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1>Patient {{ patient.patient_id }}</h1>
-            <p class="text-muted">
-                Site: <a href="{% url 'base:site_detail' patient.site.id %}">{{ patient.site.site_number }}</a>
-                | Enrollment: {{ patient.enrollment_date|default:"Not enrolled" }}
-            </p>
+<div class="patient-shell">
+    <div class="patient-card">
+        <!-- Header -->
+        <div class="patient-header">
+            <div class="patient-title">
+                <h1>Patient {{ patient.patient_id }}</h1>
+                <p>
+                    Site:
+                    <a href="{% url 'base:site_detail' patient.site.id %}">
+                        {{ patient.site.site_number }}
+                    </a>
+                    &nbsp;|&nbsp;
+                    Enrollment:
+                    {{ patient.enrollment_date|default:"Not enrolled" }}
+                </p>
+            </div>
+            <div>
+                <!-- UPDATED: map status to visible Bootstrap colors -->
+                <span class="patient-status-pill badge
+                    {% if patient.status == 'clean' %}
+                        bg-success text-dark
+                    {% elif patient.status == 'minor' %}
+                        bg-warning text-dark
+                    {% elif patient.status == 'major' or patient.status == 'critical' %}
+                        bg-danger text-white
+                    {% else %}
+                        bg-secondary text-white
+                    {% endif %}
+                ">
+                    {{ patient.get_status_display }}
+                </span>
+            </div>
         </div>
-        <div>
-            <span class="badge bg-{{ patient.status }} p-3">
-                {{ patient.get_status_display }}
-            </span>
-        </div>
-    </div>
 
-    <!-- Issues Summary -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h6>Total Issues</h6>
-                    <h2>{{ patient.issues_count }}</h2>
+        <!-- Issues Summary -->
+        <div class="row mb-3">
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="patient-metric-card metric-total-issues">
+                    <div class="patient-metric-main">
+                        <div class="patient-metric-label">Total Issues</div>
+                        <div class="patient-metric-value">{{ patient.issues_count }}</div>
+                        <div class="patient-metric-sub">All data-quality findings</div>
+                    </div>
+                    <div class="patient-metric-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="patient-metric-card metric-open-queries">
+                    <div class="patient-metric-main">
+                        <div class="patient-metric-label">Open Queries</div>
+                        <div class="patient-metric-value">{{ queries|length }}</div>
+                        <div class="patient-metric-sub">Awaiting site response</div>
+                    </div>
+                    <div class="patient-metric-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="patient-metric-card metric-visits">
+                    <div class="patient-metric-main">
+                        <div class="patient-metric-label">Visits</div>
+                        <div class="patient-metric-value">{{ visits|length }}</div>
+                        <div class="patient-metric-sub">Scheduled & completed</div>
+                    </div>
+                    <div class="patient-metric-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="patient-metric-card metric-labs">
+                    <div class="patient-metric-main">
+                        <div class="patient-metric-label">Missing Labs</div>
+                        <div class="patient-metric-value">{{ lab_data|length }}</div>
+                        <div class="patient-metric-sub">Outstanding lab records</div>
+                    </div>
+                    <div class="patient-metric-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h6>Open Queries</h6>
-                    <h2>{{ queries|length }}</h2>
+
+        <!-- Visits -->
+        <div class="card patient-section-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                    Visit Progress
+                </h5>
+                <span class="section-badge">Timeline overview</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table patient-table">
+                        <thead>
+                            <tr>
+                                <th>Visit</th>
+                                <th>Visit Name</th>
+                                <th>Scheduled</th>
+                                <th>Actual</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for visit in visits %}
+                            <tr>
+                                <td>{{ visit.visit_number }}</td>
+                                <td>{{ visit.visit_name }}</td>
+                                <td>{{ visit.scheduled_date|default:"N/A" }}</td>
+                                <td>{{ visit.actual_date|default:"N/A" }}</td>
+                                <td>
+                                    {% if visit.is_completed %}
+                                    <span class="badge-soft badge-soft-success">Completed</span>
+                                    {% elif visit.is_missing %}
+                                    <span class="badge-soft badge-soft-danger">Missing</span>
+                                    {% else %}
+                                    <span class="badge-soft badge-soft-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-muted text-center">
+                                    No visits found for this patient.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h6>Visits</h6>
-                    <h2>{{ visits|length }}</h2>
+
+        <!-- Queries -->
+        <div class="card patient-section-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle text-warning"></i>
+                    Data Queries
+                </h5>
+                <span class="section-badge">Open & resolved</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table patient-table">
+                        <thead>
+                            <tr>
+                                <th>Query ID</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Text</th>
+                                <th>Days Open</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for query in queries %}
+                            <tr>
+                                <td>{{ query.query_id }}</td>
+                                <td>
+                                    <span class="badge-soft badge-soft-secondary">
+                                        {{ query.get_query_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-soft badge-soft-{{ query.severity }}">
+                                        {{ query.severity|upper }}
+                                    </span>
+                                </td>
+                                <td>{{ query.query_text|truncatewords:10 }}</td>
+                                <td>{{ query.days_open }}</td>
+                                <td>
+                                    {% if query.is_resolved %}
+                                    <span class="badge-soft badge-soft-success">Resolved</span>
+                                    {% else %}
+                                    <span class="badge-soft badge-soft-warning">Open</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-muted text-center">
+                                    No queries for this patient.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h6>Missing Labs</h6>
-                    <h2>{{ lab_data|length }}</h2>
+
+        <!-- Lab Data -->
+        {% if lab_data %}
+        <div class="card patient-section-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-flask text-info"></i>
+                    Missing Lab Data
+                </h5>
+                <span class="section-badge">Lab completeness</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table patient-table">
+                        <thead>
+                            <tr>
+                                <th>Lab Name</th>
+                                <th>Test Name</th>
+                                <th>Collection Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lab in lab_data %}
+                            <tr>
+                                <td>{{ lab.lab_name }}</td>
+                                <td>{{ lab.test_name }}</td>
+                                <td>{{ lab.collection_date|default:"N/A" }}</td>
+                                <td>
+                                    {% if lab.is_missing %}
+                                    <span class="badge-soft badge-soft-danger">Missing</span>
+                                    {% else %}
+                                    <span class="badge-soft badge-soft-success">Complete</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
-
-    <!-- Visits -->
-    <div class="card mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="fas fa-calendar-alt text-primary"></i> Visits</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Visit</th>
-                            <th>Visit Name</th>
-                            <th>Scheduled Date</th>
-                            <th>Actual Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for visit in visits %}
-                        <tr>
-                            <td>{{ visit.visit_number }}</td>
-                            <td>{{ visit.visit_name }}</td>
-                            <td>{{ visit.scheduled_date|default:"N/A" }}</td>
-                            <td>{{ visit.actual_date|default:"N/A" }}</td>
-                            <td>
-                                {% if visit.is_completed %}
-                                <span class="badge bg-success">Completed</span>
-                                {% elif visit.is_missing %}
-                                <span class="badge bg-danger">Missing</span>
-                                {% else %}
-                                <span class="badge bg-warning">Pending</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Queries -->
-    <div class="card mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="fas fa-question-circle text-warning"></i> Open Queries</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Query ID</th>
-                            <th>Type</th>
-                            <th>Severity</th>
-                            <th>Text</th>
-                            <th>Days Open</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for query in queries %}
-                        <tr>
-                            <td>{{ query.query_id }}</td>
-                            <td><span class="badge bg-secondary">{{ query.get_query_type_display }}</span></td>
-                            <td><span class="badge bg-{{ query.severity }}">{{ query.severity|upper }}</span></td>
-                            <td>{{ query.query_text|truncatewords:10 }}</td>
-                            <td>{{ query.days_open }}</td>
-                            <td>
-                                {% if query.is_resolved %}
-                                <span class="badge bg-success">Resolved</span>
-                                {% else %}
-                                <span class="badge bg-warning">Open</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lab Data -->
-    {% if lab_data %}
-    <div class="card">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="fas fa-flask text-info"></i> Missing Lab Data</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Lab Name</th>
-                            <th>Test Name</th>
-                            <th>Collection Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lab in lab_data %}
-                        <tr>
-                            <td>{{ lab.lab_name }}</td>
-                            <td>{{ lab.test_name }}</td>
-                            <td>{{ lab.collection_date|default:"N/A" }}</td>
-                            <td>
-                                {% if lab.is_missing %}
-                                <span class="badge bg-danger">Missing</span>
-                                {% else %}
-                                <span class="badge bg-success">Complete</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
