@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'base',
-    'django_celery_beat',
-    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -98,16 +96,6 @@ DATABASES = {
 
 
 
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_CACHE_BACKEND = 'django-cache'
-
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-
-CELERY_TIMEZONE = 'UTC'
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -150,20 +138,3 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-from celery.schedules import crontab
-
-CELERY_BEAT_SCHEDULE = {
-    'calculate-all-dqi-daily': {
-        'task': 'clinical_data.tasks.calculate_all_dqi_scores',
-        'schedule': crontab(hour=2, minute=0),  # Run at 2 AM daily
-    },
-    'update-query-ages-daily': {
-        'task': 'clinical_data.tasks.update_query_ages',
-        'schedule': crontab(hour=3, minute=0),  # Run at 3 AM daily
-    },
-    'check-missing-visits-daily': {
-        'task': 'clinical_data.tasks.check_missing_visit_patterns',
-        'schedule': crontab(hour=4, minute=0),  # Run at 4 AM daily
-    },
-}
