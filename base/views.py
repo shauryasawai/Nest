@@ -10,7 +10,6 @@ from .utils.excel_parser import ExcelParser
 from .utils.dqi_calculator import DQICalculator
 from .utils.ai_integration import AIIntegration
 from .tasks import process_excel_file, calculate_all_dqi_scores
-import json
 
 def dashboard(request):
     """Main dashboard view"""

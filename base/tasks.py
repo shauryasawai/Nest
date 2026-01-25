@@ -1,12 +1,11 @@
-from celery import shared_task
 from django.utils import timezone
 from .models import ExcelUpload, Site, Patient, Alert
 from .utils.excel_parser import ExcelParser
 from .utils.dqi_calculator import DQICalculator
 
-@shared_task
+
 def process_excel_file(upload_id):
-    """Process uploaded Excel file asynchronously"""
+    """Process uploaded Excel file synchronously"""
     try:
         upload = ExcelUpload.objects.get(id=upload_id)
         
@@ -22,10 +21,10 @@ def process_excel_file(upload_id):
         upload.save()
         
         if success:
-            # Trigger DQI recalculation for affected sites
+            # Recalculate DQI for affected sites
             sites = Site.objects.filter(study=upload.study)
             for site in sites:
-                calculate_site_dqi.delay(site.id)
+                calculate_site_dqi(site.id)
             
             # Update patient statuses
             patients = Patient.objects.filter(site__study=upload.study)
@@ -38,7 +37,6 @@ def process_excel_file(upload_id):
         return f"Error: {str(e)}"
 
 
-@shared_task
 def calculate_site_dqi(site_id):
     """Calculate DQI for a specific site"""
     try:
@@ -47,7 +45,7 @@ def calculate_site_dqi(site_id):
         dqi = calculator.calculate()
         
         # Check for alerts
-        check_dqi_alerts.delay(site_id)
+        check_dqi_alerts(site_id)
         
         return f"Site {site.site_number}: DQI = {dqi}"
         
@@ -55,18 +53,16 @@ def calculate_site_dqi(site_id):
         return f"Error: {str(e)}"
 
 
-@shared_task
 def calculate_all_dqi_scores():
     """Calculate DQI for all active sites (scheduled task)"""
     sites = Site.objects.filter(status='active')
     
     for site in sites:
-        calculate_site_dqi.delay(site.id)
+        calculate_site_dqi(site.id)
     
-    return f"Triggered DQI calculation for {sites.count()} sites"
+    return f"Calculated DQI for {sites.count()} sites"
 
 
-@shared_task
 def check_dqi_alerts(site_id):
     """Check and create alerts based on DQI thresholds"""
     try:
@@ -119,7 +115,6 @@ def check_dqi_alerts(site_id):
         return f"Error: {str(e)}"
 
 
-@shared_task
 def update_query_ages():
     """Update days_open for all unresolved queries (daily task)"""
     from .models import Query
@@ -132,7 +127,6 @@ def update_query_ages():
     return f"Updated {queries.count()} queries"
 
 
-@shared_task
 def check_missing_visit_patterns():
     """Detect patterns of missing visits at sites"""
     from django.db.models import Count
