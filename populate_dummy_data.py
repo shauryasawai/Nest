@@ -1,9 +1,9 @@
-
 import os
 import django
 import random
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.db import transaction
 
 # Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
@@ -38,22 +38,22 @@ TEST_NAMES = [
 def clear_existing_data():
     """Clear all existing data"""
     print("Clearing existing data...")
-    Alert.objects.all().delete()
-    DQIHistory.objects.all().delete()
-    CodingIssue.objects.all().delete()
-    LabData.objects.all().delete()
-    Query.objects.all().delete()
-    Form.objects.all().delete()
-    Visit.objects.all().delete()
-    Patient.objects.all().delete()
-    Site.objects.all().delete()
-    Study.objects.all().delete()
+    with transaction.atomic():
+        Alert.objects.all().delete()
+        DQIHistory.objects.all().delete()
+        CodingIssue.objects.all().delete()
+        LabData.objects.all().delete()
+        Query.objects.all().delete()
+        Form.objects.all().delete()
+        Visit.objects.all().delete()
+        Patient.objects.all().delete()
+        Site.objects.all().delete()
+        Study.objects.all().delete()
     print("✓ Data cleared")
 
 def create_studies():
     """Create test studies"""
     print("\nCreating studies...")
-    studies = []
     
     studies_data = [
         {
@@ -79,26 +79,36 @@ def create_studies():
         }
     ]
     
+    studies = []
     for data in studies_data:
-        study = Study.objects.create(**data)
+        study = Study(**data)
         studies.append(study)
+    
+    # Bulk create studies
+    Study.objects.bulk_create(studies)
+    
+    # Fetch created studies to get IDs
+    studies = list(Study.objects.all().order_by('id'))
+    
+    for study in studies:
         print(f"  ✓ Created study: {study.study_id}")
     
     return studies
 
 def create_sites(studies):
-    """Create test sites"""
+    """Create test sites using bulk operations"""
     print("\nCreating sites...")
-    sites = []
+    sites_to_create = []
     
+    site_counter = 101
     for study in studies:
         # Create 8-12 sites per study
         num_sites = random.randint(8, 12)
         
         for i in range(num_sites):
-            site = Site.objects.create(
+            site = Site(
                 study=study,
-                site_number=f"{100 + len(sites) + 1}",
+                site_number=f"{site_counter}",
                 site_name=random.choice(SITE_NAMES),
                 country=random.choice(COUNTRIES),
                 investigator_name=random.choice(INVESTIGATOR_NAMES),
@@ -106,15 +116,24 @@ def create_sites(studies):
                 coordinator_email=f"coord{random.randint(1, 100)}@example.com",
                 status='active'
             )
-            sites.append(site)
-            print(f"  ✓ Created site: {site.site_number} - {site.site_name}")
+            sites_to_create.append(site)
+            site_counter += 1
+    
+    # Bulk create sites
+    Site.objects.bulk_create(sites_to_create, batch_size=100)
+    
+    # Fetch created sites
+    sites = list(Site.objects.all().select_related('study'))
+    
+    for site in sites:
+        print(f"  ✓ Created site: {site.site_number} - {site.site_name}")
     
     return sites
 
 def create_patients(sites):
-    """Create test patients"""
+    """Create test patients using bulk operations"""
     print("\nCreating patients...")
-    patients = []
+    patients_to_create = []
     
     for site in sites:
         # Create 5-15 patients per site
@@ -123,19 +142,25 @@ def create_patients(sites):
         for i in range(num_patients):
             enrollment_date = datetime.now().date() - timedelta(days=random.randint(30, 365))
             
-            patient = Patient.objects.create(
+            patient = Patient(
                 site=site,
                 patient_id=f"{site.site_number}-{str(i+1).zfill(3)}",
                 screening_number=f"SCR-{random.randint(1000, 9999)}",
                 enrollment_date=enrollment_date
             )
-            patients.append(patient)
+            patients_to_create.append(patient)
+    
+    # Bulk create patients
+    Patient.objects.bulk_create(patients_to_create, batch_size=500)
+    
+    # Fetch created patients
+    patients = list(Patient.objects.all().select_related('site'))
     
     print(f"  ✓ Created {len(patients)} patients")
     return patients
 
 def create_visits(patients):
-    """Create test visits"""
+    """Create test visits using bulk operations"""
     print("\nCreating visits...")
     visit_schedule = [
         ('V1', 'Screening'),
@@ -148,16 +173,17 @@ def create_visits(patients):
         ('V8', 'End of Treatment')
     ]
     
+    visits_to_create = []
+    
     for patient in patients:
         for i, (visit_num, visit_name) in enumerate(visit_schedule):
             scheduled_date = patient.enrollment_date + timedelta(weeks=i*4)
             
-            # 70% chance visit is completed
             is_completed = random.random() < 0.70
             actual_date = scheduled_date + timedelta(days=random.randint(-3, 7)) if is_completed else None
             is_missing = not is_completed and scheduled_date < datetime.now().date()
             
-            visit = Visit.objects.create(
+            visit = Visit(
                 patient=patient,
                 visit_number=visit_num,
                 visit_name=visit_name,
@@ -168,38 +194,55 @@ def create_visits(patients):
                 window_start=scheduled_date - timedelta(days=3),
                 window_end=scheduled_date + timedelta(days=7)
             )
-            
-            # Create forms for this visit
-            create_forms_for_visit(visit)
+            visits_to_create.append(visit)
     
-    print("  ✓ Created visits and forms")
+    # Bulk create visits
+    print(f"  Creating {len(visits_to_create)} visits...")
+    Visit.objects.bulk_create(visits_to_create, batch_size=1000)
+    print(f"  ✓ Created {len(visits_to_create)} visits")
+    
+    # Now create forms
+    print("  Creating forms...")
+    create_forms(patients)
 
-def create_forms_for_visit(visit):
-    """Create forms for a visit"""
+def create_forms(patients):
+    """Create forms for all visits using bulk operations"""
     form_types = [
         'Demographics', 'Medical History', 'Vital Signs',
         'Laboratory Results', 'Adverse Events', 'Concomitant Medications'
     ]
     
-    for form_name in form_types:
-        # 80% chance form is complete if visit is complete
-        is_complete = visit.is_completed and random.random() < 0.80
-        is_verified = is_complete and random.random() < 0.70
-        
-        Form.objects.create(
-            visit=visit,
-            form_id=f"{visit.visit_number}-{form_name.replace(' ', '')[:3].upper()}",
-            form_name=form_name,
-            is_required=True,
-            is_complete=is_complete,
-            is_verified=is_verified,
-            completed_date=visit.actual_date if is_complete else None,
-            verified_date=visit.actual_date + timedelta(days=random.randint(1, 10)) if is_verified else None
-        )
+    # Fetch all visits
+    all_visits = Visit.objects.filter(patient__in=patients).select_related('patient')
+    
+    forms_to_create = []
+    
+    for visit in all_visits:
+        for form_name in form_types:
+            is_complete = visit.is_completed and random.random() < 0.80
+            is_verified = is_complete and random.random() < 0.70
+            
+            form = Form(
+                visit=visit,
+                form_id=f"{visit.visit_number}-{form_name.replace(' ', '')[:3].upper()}",
+                form_name=form_name,
+                is_required=True,
+                is_complete=is_complete,
+                is_verified=is_verified,
+                completed_date=visit.actual_date if is_complete else None,
+                verified_date=visit.actual_date + timedelta(days=random.randint(1, 10)) if is_verified else None
+            )
+            forms_to_create.append(form)
+    
+    # Bulk create forms
+    print(f"  Creating {len(forms_to_create)} forms...")
+    Form.objects.bulk_create(forms_to_create, batch_size=2000)
+    print(f"  ✓ Created {len(forms_to_create)} forms")
 
 def create_queries(patients):
-    """Create test queries"""
+    """Create test queries using bulk operations"""
     print("\nCreating queries...")
+    queries_to_create = []
     
     for patient in patients:
         # Create 0-8 queries per patient
@@ -214,7 +257,7 @@ def create_queries(patients):
             
             days_open = (resolved_date - opened_date).days if is_resolved else (datetime.now().date() - opened_date).days
             
-            Query.objects.create(
+            query = Query(
                 patient=patient,
                 query_id=f"Q-{patient.site.site_number}-{random.randint(1000, 9999)}",
                 query_text=f"Query regarding {random.choice(['missing data', 'data inconsistency', 'clarification needed', 'protocol deviation'])}",
@@ -225,12 +268,16 @@ def create_queries(patients):
                 is_resolved=is_resolved,
                 days_open=days_open
             )
+            queries_to_create.append(query)
     
-    print("  ✓ Created queries")
+    # Bulk create queries
+    Query.objects.bulk_create(queries_to_create, batch_size=1000)
+    print(f"  ✓ Created {len(queries_to_create)} queries")
 
 def create_lab_data(patients):
-    """Create lab data entries"""
+    """Create lab data entries using bulk operations"""
     print("\nCreating lab data...")
+    labs_to_create = []
     
     for patient in patients:
         # Create 3-8 lab entries per patient
@@ -239,7 +286,7 @@ def create_lab_data(patients):
         for i in range(num_labs):
             is_missing = random.random() < 0.15  # 15% chance lab is missing
             
-            LabData.objects.create(
+            lab = LabData(
                 patient=patient,
                 lab_name=random.choice(LAB_NAMES),
                 test_name=random.choice(TEST_NAMES),
@@ -250,15 +297,20 @@ def create_lab_data(patients):
                 is_missing=is_missing,
                 collection_date=patient.enrollment_date + timedelta(days=random.randint(0, 100))
             )
+            labs_to_create.append(lab)
     
-    print("  ✓ Created lab data")
+    # Bulk create lab data
+    LabData.objects.bulk_create(labs_to_create, batch_size=1000)
+    print(f"  ✓ Created {len(labs_to_create)} lab entries")
 
 def create_coding_issues(patients):
-    """Create coding issues"""
+    """Create coding issues using bulk operations"""
     print("\nCreating coding issues...")
     
     # 30% of patients have coding issues
     patients_with_issues = random.sample(list(patients), k=int(len(patients) * 0.3))
+    
+    issues_to_create = []
     
     for patient in patients_with_issues:
         num_issues = random.randint(1, 3)
@@ -266,7 +318,7 @@ def create_coding_issues(patients):
         for i in range(num_issues):
             is_resolved = random.random() < 0.50
             
-            CodingIssue.objects.create(
+            issue = CodingIssue(
                 patient=patient,
                 issue_type=random.choice(['meddra', 'whodd', 'other']),
                 term=f"Medical term {random.randint(1, 100)}",
@@ -274,40 +326,53 @@ def create_coding_issues(patients):
                 is_resolved=is_resolved,
                 resolved_at=timezone.now() - timedelta(days=random.randint(1, 30)) if is_resolved else None
             )
+            issues_to_create.append(issue)
     
-    print("  ✓ Created coding issues")
+    # Bulk create coding issues
+    CodingIssue.objects.bulk_create(issues_to_create, batch_size=500)
+    print(f"  ✓ Created {len(issues_to_create)} coding issues")
 
 def calculate_dqi_scores(sites):
     """Calculate DQI scores for all sites"""
     print("\nCalculating DQI scores...")
     
-    for site in sites:
-        calculator = DQICalculator(site)
-        dqi = calculator.calculate()
-        print(f"  ✓ Site {site.site_number}: DQI = {dqi:.2f}")
+    for i, site in enumerate(sites, 1):
+        try:
+            calculator = DQICalculator(site)
+            dqi = calculator.calculate()
+            print(f"  ✓ Site {site.site_number}: DQI = {dqi:.2f} ({i}/{len(sites)})")
+        except Exception as e:
+            print(f"  ✗ Error calculating DQI for site {site.site_number}: {str(e)}")
 
 def update_patient_statuses(patients):
     """Update patient statuses based on issues"""
     print("\nUpdating patient statuses...")
     
-    for patient in patients:
-        patient.update_status()
+    for i, patient in enumerate(patients, 1):
+        try:
+            patient.update_status()
+            if i % 100 == 0:
+                print(f"  ✓ Updated {i}/{len(patients)} patients...")
+        except Exception as e:
+            print(f"  ✗ Error updating patient {patient.patient_id}: {str(e)}")
     
-    print("  ✓ Patient statuses updated")
+    print(f"  ✓ All {len(patients)} patient statuses updated")
 
 def create_alerts(sites):
     """Create alerts for sites with issues"""
     print("\nCreating alerts...")
+    alerts_to_create = []
     
     for site in sites:
         # Create alert if DQI is low
         if site.dqi_score < 60:
-            Alert.objects.create(
+            alert = Alert(
                 site=site,
                 alert_type='dqi_drop',
                 severity='critical' if site.dqi_score < 45 else 'high',
                 message=f"Site {site.site_number} DQI score dropped to {site.dqi_score}/100. Immediate attention required."
             )
+            alerts_to_create.append(alert)
         
         # Create alert for old queries
         old_queries = Query.objects.filter(
@@ -317,19 +382,22 @@ def create_alerts(sites):
         ).count()
         
         if old_queries > 5:
-            Alert.objects.create(
+            alert = Alert(
                 site=site,
                 alert_type='query_age',
                 severity='high',
                 message=f"Site {site.site_number} has {old_queries} queries open for more than 21 days."
             )
+            alerts_to_create.append(alert)
     
-    print("  ✓ Alerts created")
+    # Bulk create alerts
+    Alert.objects.bulk_create(alerts_to_create, batch_size=100)
+    print(f"  ✓ Created {len(alerts_to_create)} alerts")
 
 def main():
     """Main function to generate all test data"""
     print("="*60)
-    print("NEST 2.0 - Test Data Generator")
+    print("NEST 2.0 - Test Data Generator (Optimized)")
     print("="*60)
     
     # Clear existing data
@@ -338,162 +406,63 @@ def main():
         print("Aborted.")
         return
     
-    clear_existing_data()
-    
-    # Create data
-    studies = create_studies()
-    sites = create_sites(studies)
-    patients = create_patients(sites)
-    create_visits(patients)
-    create_queries(patients)
-    create_lab_data(patients)
-    create_coding_issues(patients)
-    
-    # Update calculated fields
-    update_patient_statuses(patients)
-    calculate_dqi_scores(sites)
-    create_alerts(sites)
-    
-    # Print summary
-    print("\n" + "="*60)
-    print("DATA GENERATION COMPLETE!")
-    print("="*60)
-    print(f"Studies created:      {Study.objects.count()}")
-    print(f"Sites created:        {Site.objects.count()}")
-    print(f"Patients created:     {Patient.objects.count()}")
-    print(f"Visits created:       {Visit.objects.count()}")
-    print(f"Forms created:        {Form.objects.count()}")
-    print(f"Queries created:      {Query.objects.count()}")
-    print(f"Lab entries created:  {LabData.objects.count()}")
-    print(f"Coding issues:        {CodingIssue.objects.count()}")
-    print(f"Alerts created:       {Alert.objects.count()}")
-    print("="*60)
-    print("\n✓ You can now access the application at http://localhost:8000")
-    print("✓ Admin interface at http://localhost:8000/admin")
-    print("\n")
+    try:
+        clear_existing_data()
+        
+        # Create data
+        print("\n" + "="*60)
+        print("Phase 1: Creating Core Data")
+        print("="*60)
+        studies = create_studies()
+        sites = create_sites(studies)
+        patients = create_patients(sites)
+        
+        print("\n" + "="*60)
+        print("Phase 2: Creating Visit and Form Data")
+        print("="*60)
+        create_visits(patients)
+        
+        print("\n" + "="*60)
+        print("Phase 3: Creating Additional Data")
+        print("="*60)
+        create_queries(patients)
+        create_lab_data(patients)
+        create_coding_issues(patients)
+        
+        # Update calculated fields
+        print("\n" + "="*60)
+        print("Phase 4: Calculating Metrics")
+        print("="*60)
+        update_patient_statuses(patients)
+        calculate_dqi_scores(sites)
+        create_alerts(sites)
+        
+        # Print summary
+        print("\n" + "="*60)
+        print("DATA GENERATION COMPLETE!")
+        print("="*60)
+        print(f"Studies created:      {Study.objects.count()}")
+        print(f"Sites created:        {Site.objects.count()}")
+        print(f"Patients created:     {Patient.objects.count()}")
+        print(f"Visits created:       {Visit.objects.count()}")
+        print(f"Forms created:        {Form.objects.count()}")
+        print(f"Queries created:      {Query.objects.count()}")
+        print(f"Lab entries created:  {LabData.objects.count()}")
+        print(f"Coding issues:        {CodingIssue.objects.count()}")
+        print(f"Alerts created:       {Alert.objects.count()}")
+        print("="*60)
+        print("\n✓ You can now access the application at http://localhost:8000")
+        print("✓ Admin interface at http://localhost:8000/admin")
+        print("\n")
+        
+    except Exception as e:
+        print(f"\n✗ ERROR: {str(e)}")
+        print("\nTroubleshooting steps:")
+        print("1. Ensure PostgreSQL is running")
+        print("2. Check database connection in settings.py")
+        print("3. Run: python manage.py migrate")
+        print("4. Restart PostgreSQL service if needed")
+        raise
 
 if __name__ == '__main__':
     main()
-
-
-# ============================================
-# generate_sample_excel_files.py
-# Generate sample Excel files for upload testing
-# ============================================
-
-import pandas as pd
-from datetime import datetime, timedelta
-import random
-import os
-
-def create_sample_excel_files():
-    """Create sample Excel files for testing uploads"""
-    
-    # Create directory for sample files
-    os.makedirs('sample_excel_files', exist_ok=True)
-    
-    print("Generating sample Excel files...")
-    
-    # 1. Missing Lab Data
-    print("  Creating missing_labs.xlsx...")
-    missing_labs_data = []
-    for i in range(20):
-        missing_labs_data.append({
-            'site_number': random.randint(101, 115),
-            'site_name': random.choice(['Memorial Hospital', 'City Medical Center', 'University Clinic']),
-            'country': random.choice(['USA', 'UK', 'Canada']),
-            'patient_id': f"{random.randint(101, 115)}-{str(random.randint(1, 50)).zfill(3)}",
-            'visit': f"V{random.randint(1, 8)}",
-            'lab_name': random.choice(['Central Lab', 'Quest Diagnostics', 'LabCorp']),
-            'test_name': random.choice(['CBC', 'LFT', 'KFT', 'Lipid Panel']),
-            'test_code': f"LAB-{random.randint(100, 999)}",
-            'reference_range': random.choice(['70-100', '50-150', '3-5', '']),
-        })
-    
-    df = pd.DataFrame(missing_labs_data)
-    df.to_excel('sample_excel_files/missing_labs.xlsx', index=False)
-    
-    # 2. Missing Visits
-    print("  Creating missing_visits.xlsx...")
-    missing_visits_data = []
-    for i in range(25):
-        missing_visits_data.append({
-            'site_number': random.randint(101, 115),
-            'patient_id': f"{random.randint(101, 115)}-{str(random.randint(1, 50)).zfill(3)}",
-            'visit_number': f"V{random.randint(1, 8)}",
-            'visit_name': random.choice(['Screening', 'Baseline', 'Week 4', 'Week 8', 'Week 12']),
-            'scheduled_date': (datetime.now() - timedelta(days=random.randint(1, 90))).strftime('%Y-%m-%d'),
-        })
-    
-    df = pd.DataFrame(missing_visits_data)
-    df.to_excel('sample_excel_files/missing_visits.xlsx', index=False)
-    
-    # 3. Open Queries
-    print("  Creating open_queries.xlsx...")
-    open_queries_data = []
-    for i in range(30):
-        opened_date = datetime.now() - timedelta(days=random.randint(1, 60))
-        open_queries_data.append({
-            'site_number': random.randint(101, 115),
-            'patient_id': f"{random.randint(101, 115)}-{str(random.randint(1, 50)).zfill(3)}",
-            'query_id': f"Q-{random.randint(10000, 99999)}",
-            'query_text': random.choice([
-                'Missing lab result for CBC',
-                'Data inconsistency in vital signs',
-                'Clarification needed for adverse event',
-                'Protocol deviation - visit outside window'
-            ]),
-            'query_type': random.choice(['missing_data', 'inconsistency', 'clarification', 'protocol_deviation']),
-            'severity': random.choice(['low', 'medium', 'high', 'critical']),
-            'opened_date': opened_date.strftime('%Y-%m-%d'),
-        })
-    
-    df = pd.DataFrame(open_queries_data)
-    df.to_excel('sample_excel_files/open_queries.xlsx', index=False)
-    
-    # 4. Coding Issues
-    print("  Creating coding_issues.xlsx...")
-    coding_issues_data = []
-    for i in range(15):
-        coding_issues_data.append({
-            'site_number': random.randint(101, 115),
-            'patient_id': f"{random.randint(101, 115)}-{str(random.randint(1, 50)).zfill(3)}",
-            'term': random.choice(['Headache', 'Nausea', 'Fatigue', 'Dizziness', 'Rash']),
-            'issue_type': random.choice(['meddra', 'whodd']),
-            'suggested_code': f"CODE-{random.randint(10000, 99999)}",
-        })
-    
-    df = pd.DataFrame(coding_issues_data)
-    df.to_excel('sample_excel_files/coding_issues.xlsx', index=False)
-    
-    # 5. Visit Projections
-    print("  Creating visit_projections.xlsx...")
-    visit_projections_data = []
-    for i in range(40):
-        projected_date = datetime.now() + timedelta(days=random.randint(-30, 60))
-        actual_date = projected_date + timedelta(days=random.randint(-5, 5)) if random.random() < 0.6 else None
-        
-        visit_projections_data.append({
-            'site_number': random.randint(101, 115),
-            'patient_id': f"{random.randint(101, 115)}-{str(random.randint(1, 50)).zfill(3)}",
-            'visit_number': f"V{random.randint(1, 8)}",
-            'visit_name': random.choice(['Screening', 'Baseline', 'Week 4', 'Week 8', 'Week 12']),
-            'projected_date': projected_date.strftime('%Y-%m-%d'),
-            'actual_date': actual_date.strftime('%Y-%m-%d') if actual_date else '',
-        })
-    
-    df = pd.DataFrame(visit_projections_data)
-    df.to_excel('sample_excel_files/visit_projections.xlsx', index=False)
-    
-    print("\n✓ Sample Excel files created in 'sample_excel_files/' directory")
-    print("\nGenerated files:")
-    print("  - missing_labs.xlsx")
-    print("  - missing_visits.xlsx")
-    print("  - open_queries.xlsx")
-    print("  - coding_issues.xlsx")
-    print("  - visit_projections.xlsx")
-    print("\nYou can upload these files through the web interface at:")
-    print("http://localhost:8000/upload/")
-
-if __name__ == '__main__':
-    create_sample_excel_files()

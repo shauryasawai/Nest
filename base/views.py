@@ -46,7 +46,7 @@ def dashboard(request):
     # Top performing sites
     top_sites = Site.objects.filter(
         study__in=studies,
-        dqi_score__gte=63
+        dqi_score__gte=50
     ).order_by('-dqi_score')[:5]
     
     context = {
