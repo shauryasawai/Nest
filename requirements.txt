@@ -1,7 +1,7 @@
 Django==5.2.10
-numpy==2.4.1
+numpy
 openai==2.15.0
 openpyxl==3.1.5
-pandas==2.3.3
+pandas
 dj_database_url
 dotenv
