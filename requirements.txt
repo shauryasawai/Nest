@@ -5,4 +5,4 @@ openpyxl==3.1.5
 pandas
 dj_database_url
 dotenv
-psycopg2
+psycopg2-binary
